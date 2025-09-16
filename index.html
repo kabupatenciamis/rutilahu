@@ -3,72 +3,655 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SIRUCI — Dashboard RTLH (Firebase)</title>
+  <title>SIRUCI — Dashboard Rutilahu (Firebase)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-
   <style>
-    body { background: #f4f7fa; }
-    .card { border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); }
-    #map { height: 400px; border-radius: 8px; }
+    :root{
+      --bg: #f4f7fa;
+      --card-bg: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --table-head-bg: #343a40;
+      --table-head-text: #fff;
+      --kpi-blue: #e6f0ff;
+      --kpi-green: #e9f7ec;
+      --kpi-orange: #fff4e6;
+      --kpi-purple: #f3eaff;
+    }
+    body { background: var(--bg); color: var(--text); transition: background 0.3s ease, color 0.3s ease; }
+    .card { border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); background: var(--card-bg); transition: background 0.3s ease, color 0.3s ease; }
+    #map { height: 420px; border-radius: 8px; }
+    .leaflet-marker-icon { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45)); }
+    tr.selected { background: #ffeaa7 !important; }
+    .small-btn { padding: .25rem .45rem; font-size: .85rem; }
+    .kpi-card { text-align:center; padding:1rem; border-radius:12px; background: var(--card-bg); transition: all 0.25s ease; }
+    .kpi-value { font-size:1.8rem; font-weight:bold; }
+    .kpi-icon { font-size:2rem; margin-bottom:4px; }
+
+    .kpi-blue{ background: var(--kpi-blue); }
+    .kpi-green{ background: var(--kpi-green); }
+    .kpi-orange{ background: var(--kpi-orange); }
+    .kpi-purple{ background: var(--kpi-purple); }
+
+    .table-controls{ display:flex; gap:.5rem; align-items:center; }
+    .page-btn{ min-width:36px; }
+
+    #toggleTheme.animate { transform: rotate(360deg); transition: transform 0.6s ease; }
+
+    body.dark{
+      --bg: #0b1220;
+      --card-bg: #0f1724;
+      --text: #e6eef8;
+      --muted: #9aa8bf;
+      --table-head-bg: #111827;
+      --table-head-text: #e6eef8;
+      --kpi-blue: #1e3a8a33;
+      --kpi-green: #064e3b33;
+      --kpi-orange: #7c2d1233;
+      --kpi-purple: #4c1d9533;
+    }
+
+    h3, h5, .form-label, label, th, td, .kpi-card div { color: var(--text); transition: color 0.3s ease; }
+    .text-muted { color: var(--muted) !important; transition: color 0.3s ease; }
+
+    .icon-color-select { width:150px; }
+
+    th.sortable { cursor: pointer; position: relative; }
+    th.sortable::after { content: ""; position: absolute; right: 8px; font-size: 0.8rem; }
+    th.sortable.asc::after { content: "⬆️"; }
+    th.sortable.desc::after { content: "⬇️"; }
+
+    @media (max-width:600px){ .table-controls{ flex-wrap:wrap; } .icon-color-select{ width:100px } }
   </style>
+
+  <!-- Firebase (compat build so existing firebase.initializeApp / firebase.firestore() calls work) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
 <body class="p-4">
   <div class="container">
-    <h3 class="mb-3">🏠 SIRUCI — Sistem Informasi RTLH Kabupaten Ciamis</h3>
-
-    <div class="mb-3">
-      <label class="form-label">Unggah file Excel (.xlsx)</label>
-      <input type="file" id="fileInput" class="form-control" accept=".xlsx,.xls">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3>🏠 SIRUCI — Sistem Informasi Rumah Tidak Layak Huni Kabupaten Ciamis</h3>
+      <div class="d-flex gap-2 align-items-center">
+        <select id="iconColor" class="form-select form-select-sm icon-color-select" title="Warna ikon peta">
+          <option value="blue">Biru</option>
+          <option value="green">Hijau</option>
+          <option value="red">Merah</option>
+          <option value="orange">Oranye</option>
+          <option value="purple">Ungu</option>
+        </select>
+        <button class="btn btn-sm btn-outline-secondary" id="downloadTemplate">⬇️ Unduh Template Excel</button>
+        <button class="btn btn-sm btn-outline-secondary" id="clearStorage">🗄️ Hapus Auto-save</button>
+        <button class="btn btn-sm btn-outline-secondary" id="toggleTheme">🌓 Tema Gelap</button>
+        <a id="downloadLink" style="display:none"></a>
+      </div>
     </div>
 
-    <div class="mb-3">
-      <button class="btn btn-success" onclick="addRow()">➕ Tambah Data</button>
-      <button class="btn btn-warning" onclick="exportExcel()">⬇️ Export Excel</button>
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <div class="kpi-card kpi-blue">
+          <div class="kpi-icon">📊</div>
+          <div class="kpi-value" id="totalData">0</div>
+          <div>Total Data Rutilahu</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="kpi-card kpi-green">
+          <div class="kpi-icon">🏘️</div>
+          <div class="kpi-value" id="totalKecamatan">0</div>
+          <div>Total Kecamatan</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="kpi-card kpi-orange">
+          <div class="kpi-icon">🏡</div>
+          <div class="kpi-value" id="totalDesa">0</div>
+          <div>Total Desa</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="kpi-card kpi-purple">
+          <div class="kpi-icon">👨‍👩‍👧‍👦</div>
+          <div class="kpi-value" id="totalPenghuni">0</div>
+          <div>Total Penghuni</div>
+        </div>
+      </div>
     </div>
 
     <div class="card p-3 mb-3">
-      <h5>📋 Data Rutilahu</h5>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="form-label">Unggah file Excel (.xlsx)</label>
+          <input type="file" id="fileInput" class="form-control" accept=".xlsx,.xls">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Filter Kecamatan</label>
+          <select id="filterKecamatan" class="form-select"><option value="">Semua</option></select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Filter Desa</label>
+          <select id="filterDesa" class="form-select"><option value="">Semua</option></select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Cari</label>
+          <input id="searchInput" class="form-control" placeholder="nama / No NIK...">
+        </div>
+      </div>
+
+      <div class="mt-3 d-flex gap-2">
+        <button class="btn btn-success" onclick="addRow()">➕ Tambah Data</button>
+        <button class="btn btn-warning" onclick="exportExcel()">⬇️ Export Excel</button>
+        <button class="btn btn-outline-primary" id="clearData">🧹 Bersihkan Data</button>
+        <div class="ms-auto text-muted align-self-center">Klik satu baris tabel untuk memilihnya — lalu klik peta untuk mengisi koordinat</div>
+      </div>
+
+      <div class="mt-2">
+        <small class="text-muted">Auto-save: setiap perubahan (tambah/simpan/hapus/koordinat) otomatis tersimpan di browser (LocalStorage). Anda bisa menghapus auto-save dengan tombol "Hapus Auto-save".</small>
+      </div>
+    </div>
+
+    <div class="card p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">📋 Data Rutilahu</h5>
+        <div class="table-controls">
+          <label class="mb-0">Tampilkan</label>
+          <select id="pageSizeSel" class="form-select form-select-sm" style="width:90px"><option value="10">10</option><option value="20">20</option><option value="30">30</option></select>
+          <div id="pagination" class="btn-group btn-group-sm" role="group"></div>
+          <button class="btn btn-sm btn-outline-secondary" id="resetSort">🔄 Reset Urutan</button>
+        </div>
+      </div>
       <div class="table-responsive">
-        <table class="table table-striped" id="dataTable">
+        <table class="table table-striped table-bordered" id="dataTable">
           <thead>
             <tr>
-              <th>Nama</th>
-              <th>No KK</th>
-              <th>No NIK</th>
-              <th>Alamat</th>
-              <th>Kecamatan</th>
-              <th>Desa</th>
-              <th>Luas Rumah</th>
-              <th>Jumlah Penghuni</th>
-              <th>Latitude</th>
-              <th>Longitude</th>
+              <th class="sortable">Nama</th>
+              <th class="sortable">No KK</th>
+              <th class="sortable">No NIK</th>
+              <th class="sortable">Alamat</th>
+              <th class="sortable">Kecamatan</th>
+              <th class="sortable">Desa</th>
+              <th class="sortable">Luas Rumah</th>
+              <th class="sortable">Jumlah Penghuni</th>
+              <th class="sortable">Latitude</th>
+              <th class="sortable">Longitude</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
+      <div class="d-flex justify-content-between align-items-center mt-2">
+        <small id="pageInfo" class="text-muted"></small>
+        <div></div>
+      </div>
     </div>
 
-    <div class="card p-3">
-      <h5>🗺️ Peta Sebaran</h5>
-      <div id="map"></div>
+    <div class="row g-3">
+      <div class="col-lg-6">
+        <div class="card p-3">
+          <h5>📈 Grafik: Jumlah Rutilahu per Kecamatan</h5>
+          <div class="d-flex justify-content-end mb-2">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="togglePerDesa">
+              <label class="form-check-label" for="togglePerDesa">Tampilkan per Desa</label>
+            </div>
+          </div>
+          <div style="height:300px"><canvas id="chartCanvas"></canvas></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card p-3">
+          <h5>🗺️ Peta Sebaran (klik peta untuk isi koordinat ke baris terpilih)</h5>
+          <div id="map"></div>
+        </div>
+      </div>
     </div>
+
   </div>
 
   <!-- Libs -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
   <script>
   // -------------------------
-  // Firebase Config
+  // Config / state
   // -------------------------
+  const LS_KEY = 'rutilahu_ciamis_autosave_v1';
+  const LS_THEME = 'rutilahu_theme_v1';
+  const LS_COLOR = 'rutilahu_icon_color_v1';
+  const LS_SORT = 'rutilahu_sort_v1';
+  const COLOR_MAP = {
+    blue:  {fill:'#3b82f6', stroke:'#60a5fa', strokeDark:'#93c5fd'},
+    green: {fill:'#22c55e', stroke:'#16a34a', strokeDark:'#86efac'},
+    red:   {fill:'#ef4444', stroke:'#b91c1c', strokeDark:'#fca5a5'},
+    orange:{fill:'#f97316', stroke:'#c2410c', strokeDark:'#fdba74'},
+    purple:{fill:'#8b5cf6', stroke:'#6d28d9', strokeDark:'#c4b5fd'}
+  };
+
+  let globalData = [];
+  let filteredView = [];
+  let selectedGlobalIndex = null;
+  let chart, markersLayer;
+  let map = L.map('map').setView([-7.33, 108.33], 10);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution: '© OpenStreetMap' }).addTo(map);
+  markersLayer = L.layerGroup().addTo(map);
+
+  let currentPage = 1;
+  let pageSize = parseInt(localStorage.getItem('rutilahu_page_size')||'10',10);
+
+  // -------------------------
+  // Helpers
+  // -------------------------
+  function safeFloat(v){ let n = parseFloat(v); return isNaN(n)? null : n; }
+  function escapeHtml(s){ if(s==null) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+  // -------------------------
+  // Theme & Icon color handling
+  // -------------------------
+  const themeBtn = document.getElementById('toggleTheme');
+  const iconColorSel = document.getElementById('iconColor');
+  let selectedColor = localStorage.getItem(LS_COLOR) || 'blue';
+  iconColorSel.value = selectedColor;
+
+  function applySavedTheme(){
+    const t = localStorage.getItem(LS_THEME)||'light';
+    if(t==='dark'){ document.body.classList.add('dark'); themeBtn.innerText = '🌙 Gelap (Aktif)'; }
+    else { document.body.classList.remove('dark'); themeBtn.innerText = '☀️ Gelap'; }
+  }
+  applySavedTheme();
+
+  themeBtn.addEventListener('click', ()=>{
+    themeBtn.classList.add('animate');
+    setTimeout(()=> themeBtn.classList.remove('animate'), 600);
+    if(document.body.classList.contains('dark')){ document.body.classList.remove('dark'); localStorage.setItem(LS_THEME,'light'); themeBtn.innerText='☀️ Gelap'; }
+    else{ document.body.classList.add('dark'); localStorage.setItem(LS_THEME,'dark'); themeBtn.innerText='🌙 Gelap (Aktif)'; }
+    setTimeout(()=> updateMap(), 320);
+  });
+
+  iconColorSel.addEventListener('change', (e)=>{
+    selectedColor = e.target.value;
+    localStorage.setItem(LS_COLOR, selectedColor);
+    updateMap();
+  });
+
+  // -------------------------
+  // LocalStorage auto-save
+  // -------------------------
+  function saveToLocal(){
+    try{
+      localStorage.setItem(LS_KEY, JSON.stringify(globalData));
+      // also save to Firebase (cloud) in background
+      saveToFirebase().catch(e => console.warn('Gagal simpan ke Firebase (background):', e));
+    }catch(e){ console.warn('Gagal simpan',e); }
+  }
+  function loadFromLocal(){
+    try{
+      const s = localStorage.getItem(LS_KEY);
+      if(!s) return false;
+      const parsed = JSON.parse(s);
+      if(Array.isArray(parsed)){
+        globalData = parsed.map(r=>({
+          Nama: r.Nama||'', NoKK: r.NoKK||'', NoNIK: r.NoNIK||'', Alamat: r.Alamat||'', Kecamatan: r.Kecamatan||'', Desa: r.Desa||'',
+          LuasRumah: safeFloat(r.LuasRumah) || 0, JumlahPenghuni: parseInt(r.JumlahPenghuni)||0,
+          Latitude: safeFloat(r.Latitude), Longitude: safeFloat(r.Longitude)
+        }));
+        return true;
+      }
+      return false;
+    }catch(e){ console.warn('Gagal load local', e); return false; }
+  }
+
+  document.getElementById('clearStorage').addEventListener('click', ()=>{
+    if(confirm('Hapus auto-save dari browser?')){ localStorage.removeItem(LS_KEY); alert('Auto-save dihapus. Reload halaman untuk memulai dari nol atau upload file Excel.'); }
+  });
+
+  // -------------------------
+  // File upload
+  // -------------------------
+  document.getElementById('fileInput').addEventListener('change', handleFile, false);
+  function handleFile(ev){
+    const f = ev.target.files[0];
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type: 'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const arr = XLSX.utils.sheet_to_json(ws, {defval: ''});
+      globalData = arr.map(r => ({
+        Nama: r.Nama || r.nama || r.name || '',
+        NoKK: r.NoKK || r.No_KK || r['No KK'] || '',
+        NoNIK: r.NoNIK || r.No_NIK || r['No NIK'] || '',
+        Alamat: r.Alamat || r.alamat || '',
+        Kecamatan: r.Kecamatan || r.kecamatan || '',
+        Desa: r.Desa || r.desa || '',
+        LuasRumah: safeFloat(r.LuasRumah || r['Luas Rumah'] || r.luas) || 0,
+        JumlahPenghuni: parseInt(r.JumlahPenghuni || r['Jumlah Penghuni'] || r.jumlah) || 0,
+        Latitude: safeFloat(r.Latitude || r.Lat || r.lat) ,
+        Longitude: safeFloat(r.Longitude || r.Lng || r.lng)
+      }));
+      populateFilters();
+      applyFilters();
+      saveToLocal();
+    };
+    reader.readAsArrayBuffer(f);
+  }
+
+  // -------------------------
+  // Filters & search
+  // -------------------------
+  function populateFilters(){
+    const kecSet = new Set();
+    const desaSet = new Set();
+    globalData.forEach(d => { if(d.Kecamatan) kecSet.add(d.Kecamatan); if(d.Desa) desaSet.add(d.Desa); });
+    const kecSel = document.getElementById('filterKecamatan');
+    const desaSel = document.getElementById('filterDesa');
+    kecSel.innerHTML = '<option value="">Semua</option>';
+    desaSel.innerHTML = '<option value="">Semua</option>';
+    Array.from(kecSet).sort().forEach(k=> kecSel.innerHTML += `<option value="${k}">${k}</option>`);
+    Array.from(desaSet).sort().forEach(d=> desaSel.innerHTML += `<option value="${d}">${d}</option>`);
+  }
+  document.getElementById('filterKecamatan').addEventListener('change', applyFilters);
+  document.getElementById('filterDesa').addEventListener('change', applyFilters);
+  document.getElementById('searchInput').addEventListener('input', applyFilters);
+  document.getElementById('pageSizeSel').value = pageSize;
+  document.getElementById('pageSizeSel').addEventListener('change', (e)=>{ pageSize = parseInt(e.target.value,10); localStorage.setItem('rutilahu_page_size', String(pageSize)); currentPage = 1; renderTable(); });
+
+  // -------------------------
+  // Sorting
+  // -------------------------
+  let sortConfig = { key: null, asc: true };
+  function applySavedSort(){
+    const saved = localStorage.getItem(LS_SORT);
+    if(!saved) return;
+    try{
+      const sc = JSON.parse(saved);
+      sortConfig = sc;
+    }catch(e){ return; }
+  }
+  function sortFilteredViewIfNeeded(){
+    if(!sortConfig.key) return;
+    filteredView.sort((a, b) => {
+      const valA = (a[sortConfig.key] || "").toString().toLowerCase();
+      const valB = (b[sortConfig.key] || "").toString().toLowerCase();
+      if(valA < valB) return sortConfig.asc ? -1 : 1;
+      if(valA > valB) return sortConfig.asc ? 1 : -1;
+      return 0;
+    });
+  }
+  function setHeaderSortUI(){
+    document.querySelectorAll("#dataTable thead th.sortable").forEach(thEl => thEl.classList.remove("asc","desc"));
+    const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","LuasRumah","JumlahPenghuni","Latitude","Longitude"];
+    const idx = keyMap.indexOf(sortConfig.key);
+    if(idx >= 0){
+      const ths = document.querySelectorAll("#dataTable thead th.sortable");
+      if(ths[idx]) ths[idx].classList.add(sortConfig.asc ? "asc":"desc");
+    }
+  }
+  function sortByKey(key, th){
+    if(sortConfig.key === key){ sortConfig.asc = !sortConfig.asc; } else { sortConfig.key = key; sortConfig.asc = true; }
+    sortFilteredViewIfNeeded();
+    currentPage = 1;
+    renderTable();
+    setHeaderSortUI();
+    localStorage.setItem(LS_SORT, JSON.stringify(sortConfig));
+  }
+
+  // -------------------------
+  // Table render / CRUD
+  // -------------------------
+  const tbody = document.querySelector('#dataTable tbody');
+  function renderTable(){
+    tbody.innerHTML = '';
+    const total = filteredView.length;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    if(currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    const pageSlice = filteredView.slice(start, end);
+
+    pageSlice.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      tr.dataset.idx = r._idx;
+      tr.innerHTML = `
+        <td contenteditable="true">${escapeHtml(r.Nama)}</td>
+        <td contenteditable="true">${escapeHtml(r.NoKK)}</td>
+        <td contenteditable="true">${escapeHtml(r.NoNIK)}</td>
+        <td contenteditable="true">${escapeHtml(r.Alamat)}</td>
+        <td contenteditable="true">${escapeHtml(r.Kecamatan)}</td>
+        <td contenteditable="true">${escapeHtml(r.Desa)}</td>
+        <td contenteditable="true">${r.LuasRumah ?? ''}</td>
+        <td contenteditable="true">${r.JumlahPenghuni ?? ''}</td>
+        <td contenteditable="true">${r.Latitude ?? ''}</td>
+        <td contenteditable="true">${r.Longitude ?? ''}</td>
+        <td>
+          <button class="btn btn-sm btn-success small-btn" onclick="saveRow(this)">💾</button>
+          <button class="btn btn-sm btn-danger small-btn" onclick="deleteRow(this)">🗑️</button>
+        </td>`;
+      tr.addEventListener('click', function(e){ if(e.target.tagName === 'BUTTON') return; selectRow(r._idx, tr); });
+      tbody.appendChild(tr);
+    });
+
+    renderPagination(total, totalPages);
+    document.getElementById('pageInfo').innerText = `Menampilkan ${total===0?0:start+1} - ${Math.min(total, end)} dari ${total} baris`;
+  }
+
+  function renderPagination(total, totalPages){
+    const pg = document.getElementById('pagination'); pg.innerHTML = '';
+    const createBtn = (txt, onClick, disabled=false, cls='btn-secondary')=>{
+      const b = document.createElement('button'); b.type='button'; b.className = `btn ${cls} page-btn`; if(disabled) b.disabled=true; b.innerText = txt; b.addEventListener('click', onClick); return b;
+    };
+    pg.appendChild(createBtn('⟨', ()=>{ if(currentPage>1){ currentPage--; renderTable(); } }, currentPage===1));
+    const maxButtons = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxButtons/2));
+    let end = Math.min(totalPages, start + maxButtons -1);
+    if(end - start < maxButtons -1) start = Math.max(1, end - maxButtons +1);
+    for(let p = start; p<=end; p++){
+      const cls = p===currentPage ? 'btn-primary' : 'btn-outline-secondary';
+      pg.appendChild(createBtn(p, ()=>{ currentPage = p; renderTable(); }, false, cls));
+    }
+    pg.appendChild(createBtn('⟩', ()=>{ if(currentPage<totalPages){ currentPage++; renderTable(); } }, currentPage===totalPages));
+  }
+
+  function selectRow(globalIdx, trElement){
+    document.querySelectorAll('#dataTable tbody tr').forEach(t => t.classList.remove('selected'));
+    trElement.classList.add('selected');
+    selectedGlobalIndex = globalIdx;
+  }
+
+  function addRow(){
+    const newObj = { Nama: '', NoKK: '', NoNIK: '', Alamat:'', Kecamatan:'', Desa:'', LuasRumah:0, JumlahPenghuni:0, Latitude:null, Longitude:null };
+    globalData.push(newObj);
+    populateFilters();
+    applyFilters();
+    saveToLocal();
+    selectedGlobalIndex = globalData.length - 1;
+    setTimeout(()=>{
+      const tr = [...document.querySelectorAll('#dataTable tbody tr')].find(t=> parseInt(t.dataset.idx)===selectedGlobalIndex);
+      if(tr) { tr.scrollIntoView({behavior:'smooth', block:'center'}); tr.classList.add('selected'); }
+    }, 120);
+  }
+
+  function saveRow(btn){
+    const tr = btn.closest('tr');
+    const idx = parseInt(tr.dataset.idx);
+    const cells = tr.querySelectorAll('td');
+    globalData[idx] = {
+      Nama: cells[0].innerText.trim(),
+      NoKK: cells[1].innerText.trim(),
+      NoNIK: cells[2].innerText.trim(),
+      Alamat: cells[3].innerText.trim(),
+      Kecamatan: cells[4].innerText.trim(),
+      Desa: cells[5].innerText.trim(),
+      LuasRumah: safeFloat(cells[6].innerText) || 0,
+      JumlahPenghuni: parseInt(cells[7].innerText) || 0,
+      Latitude: safeFloat(cells[8].innerText),
+      Longitude: safeFloat(cells[9].innerText)
+    };
+    populateFilters();
+    applyFilters();
+    saveToLocal();
+  }
+
+  function deleteRow(btn){
+    const tr = btn.closest('tr');
+    const idx = parseInt(tr.dataset.idx);
+    if(!confirm('Hapus data ini?')) return;
+    globalData.splice(idx,1);
+    populateFilters();
+    applyFilters();
+    saveToLocal();
+    selectedGlobalIndex = null;
+  }
+
+  // -------------------------
+  // Chart
+  // -------------------------
+  function updateChart(){
+    const perDesa = document.getElementById('togglePerDesa')?.checked;
+    const grouped = {};
+    filteredView.forEach(r => { const key = perDesa ? (r.Desa||'(Belum diisi)') : (r.Kecamatan||'(Belum diisi)'); grouped[key] = (grouped[key]||0)+1; });
+    const labels = Object.keys(grouped);
+    const values = Object.values(grouped);
+    if(chart) chart.destroy();
+    const ctx = document.getElementById('chartCanvas').getContext('2d');
+    const filterKec = document.getElementById('filterKecamatan').value;
+    const filterDesa = document.getElementById('filterDesa').value;
+    let title = perDesa ? 'Jumlah Rutilahu per Desa' : 'Jumlah Rutilahu per Kecamatan';
+    if(filterKec) title += ' — Kec: ' + filterKec;
+    if(filterDesa) title += ', Desa: ' + filterDesa;
+    chart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Jumlah Rutilahu', data: values }] }, options: { responsive:true, maintainAspectRatio:false, plugins: { title: { display: true, text: title } } } });
+  }
+
+  // -------------------------
+  // Map (SVG icons + bounce)
+  // -------------------------
+  function getSvgIconDataUrl(colorKey, isDark){
+    const c = COLOR_MAP[colorKey] || COLOR_MAP.blue;
+    if(isDark){
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'><path fill='%23ffffff' stroke='"+c.strokeDark+"' stroke-width='0.9' d='M12 2l7 6v9a1 1 0 0 1-1 1h-4v-6H10v6H6a1 1 0 0 1-1-1V8l7-6z'/><circle cx='12' cy='10' r='1.2' fill='"+c.strokeDark+"' /></svg>");
+    } else {
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'><path fill='"+c.fill+"' stroke='"+c.stroke+"' stroke-width='0.9' d='M12 2l7 6v9a1 1 0 0 1-1 1h-4v-6H10v6H6a1 1 0 0 1-1-1V8l7-6z'/><circle cx='12' cy='10' r='1.2' fill='%23ffffff' /></svg>");
+    }
+  }
+
+  function createSvgIcon(){
+    const isDark = document.body.classList.contains('dark');
+    return L.icon({
+      iconUrl: getSvgIconDataUrl(selectedColor, isDark),
+      iconSize: [36,36],
+      iconAnchor: [18,36],
+      popupAnchor: [0,-30]
+    });
+  }
+
+  function bounceMarker(marker){
+    const icon = marker._icon;
+    if(!icon) return;
+    icon.style.transition = 'transform 0.6s cubic-bezier(.28,.84,.42,1)';
+    icon.style.transform = 'translateY(-10px)';
+    setTimeout(()=> icon.style.transform = 'translateY(0)', 600);
+  }
+
+  function updateMap(){
+    if(!markersLayer) return;
+    markersLayer.clearLayers();
+    const icon = createSvgIcon();
+    filteredView.forEach(r => {
+      if(r.Latitude != null && r.Longitude != null){
+        const m = L.marker([r.Latitude, r.Longitude], {icon}).bindPopup(`<b>${escapeHtml(r.Nama)}</b><br>${escapeHtml(r.Alamat)}<br>Kec: ${escapeHtml(r.Kecamatan)} | Desa: ${escapeHtml(r.Desa)}`);
+        markersLayer.addLayer(m);
+        m.on('add', ()=> bounceMarker(m));
+      }
+    });
+  }
+
+  map.on('click', function(e){
+    const lat = parseFloat(e.latlng.lat.toFixed(6));
+    const lng = parseFloat(e.latlng.lng.toFixed(6));
+    if(selectedGlobalIndex === null){ alert('Silakan pilih satu baris pada tabel terlebih dahulu (klik baris) agar koordinat bisa diisi.'); return; }
+    globalData[selectedGlobalIndex].Latitude = lat;
+    globalData[selectedGlobalIndex].Longitude = lng;
+    applyFilters();
+    saveToLocal();
+    const m = L.marker([lat, lng], {icon: createSvgIcon()}).addTo(map).bindPopup('Koordinat disimpan ke baris terpilih:<br>' + lat + ', ' + lng).openPopup();
+    setTimeout(()=>{ map.removeLayer(m); }, 1800);
+  });
+
+  // -------------------------
+  // Export / Template
+  // -------------------------
+  function exportExcel(){
+    const out = globalData.map(r => ({
+      Nama: r.Nama||'', NoKK: r.NoKK||'', NoNIK: r.NoNIK||'', Alamat: r.Alamat||'', Kecamatan: r.Kecamatan||'', Desa: r.Desa||'',
+      LuasRumah: r.LuasRumah||0, JumlahPenghuni: r.JumlahPenghuni||0, Latitude: r.Latitude||'', Longitude: r.Longitude||''
+    }));
+    const ws = XLSX.utils.json_to_sheet(out);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Rutilahu');
+    XLSX.writeFile(wb, 'Rutilahu_Ciamis_export.xlsx');
+  }
+
+  document.getElementById('downloadTemplate').addEventListener('click', ()=>{
+    const headers = [{Nama:'Nama contoh',NoKK:'3201...',NoNIK:'3510...',Alamat:'Jl. Contoh',Kecamatan:'Contoh Kec',Desa:'Contoh Desa',LuasRumah:36,JumlahPenghuni:4,Latitude:-7.333333,Longitude:108.333333}];
+    const ws = XLSX.utils.json_to_sheet(headers, {header: ['Nama','NoKK','NoNIK','Alamat','Kecamatan','Desa','LuasRumah','JumlahPenghuni','Latitude','Longitude']});
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Template');
+    XLSX.writeFile(wb, 'Template_Rutilahu_Ciamis.xlsx');
+  });
+
+  document.getElementById('clearData').addEventListener('click', ()=>{
+    if(!confirm('Kosongkan semua data yang sedang dimuat (tidak menghapus file asli)?')) return;
+    globalData = [];
+    applyFilters();
+    populateFilters();
+    selectedGlobalIndex = null;
+    saveToLocal();
+  });
+
+  document.getElementById('clearStorage').addEventListener('click', ()=>{
+    if(confirm('Hapus auto-save dari browser?')){
+      localStorage.removeItem(LS_KEY);
+      alert('Auto-save dihapus. Reload halaman untuk memulai dari nol atau upload file Excel.');
+    }
+  });
+
+  // -------------------------
+  // KPI + animateNumber
+  // -------------------------
+  function animateNumber(element, newValue, duration = 500){
+    if(!element) return;
+    const oldValue = parseInt(String(element.innerText).replace(/\D/g,'')) || 0;
+    const diff = newValue - oldValue;
+    const start = performance.now();
+    function step(timestamp){
+      const progress = Math.min((timestamp - start) / duration, 1);
+      const value = Math.floor(oldValue + diff * progress);
+      element.innerText = value.toLocaleString('id-ID');
+      if(progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function updateKPI(){
+    animateNumber(document.getElementById('totalData'), globalData.length);
+    const kecSet = new Set(globalData.map(d=>d.Kecamatan).filter(Boolean));
+    animateNumber(document.getElementById('totalKecamatan'), kecSet.size);
+    const desaSet = new Set(globalData.map(d=>d.Desa).filter(Boolean));
+    animateNumber(document.getElementById('totalDesa'), desaSet.size);
+    const totalPenghuni = globalData.reduce((sum,d)=> sum+(parseInt(d.JumlahPenghuni)||0),0);
+    animateNumber(document.getElementById('totalPenghuni'), totalPenghuni);
+  }
+
+  // -------------------------
+  // Firebase integration
+  // -------------------------
+  // ================ IMPORTANT ================
+  // Ganti nilai-nilai di bawah ini dengan firebaseConfig
+  // dari Firebase Console (Project settings -> Your apps -> SDK config)
+  // ============================================
   const firebaseConfig = {
     apiKey: "AIzaSyCSdubntMjMsOFIHNl-z9f6GTnBEJsz8qk",
   authDomain: "rutilahu-ciamis.firebaseapp.com",
@@ -77,133 +660,172 @@
   messagingSenderId: "785824428340",
   appId: "1:785824428340:web:aec44a0b8307d7ed247561"
   };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
 
-  // -------------------------
-  // State
-  // -------------------------
-  let globalData = [];
-  let selectedIndex = null;
-  const tbody = document.querySelector('#dataTable tbody');
-  let map = L.map('map').setView([-7.33, 108.33], 10);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution: '© OpenStreetMap' }).addTo(map);
+  // Init firebase (compat)
+  try {
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+  } catch (err) {
+    console.warn("Firebase init error:", err);
+  }
 
-  // -------------------------
-  // Firebase functions
-  // -------------------------
+  // Save to Firestore: deletes existing collection docs and re-adds globalData
   async function saveToFirebase(){
+    if(typeof db === 'undefined') return Promise.reject('Firestore not initialized');
     try {
       const colRef = db.collection("rutilahu");
+      // delete existing documents in collection (Firestore has no native truncate; batch deletes)
       const snap = await colRef.get();
-      const batch = db.batch();
-      snap.forEach(doc => batch.delete(doc.ref));
-      await batch.commit();
-
+      if(!snap.empty){
+        const batch = db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+      }
+      // add all entries
       for (let r of globalData){
-        await colRef.add(r);
+        // ensure numeric fields are numbers (or null)
+        const doc = {
+          Nama: r.Nama||'',
+          NoKK: r.NoKK||'',
+          NoNIK: r.NoNIK||'',
+          Alamat: r.Alamat||'',
+          Kecamatan: r.Kecamatan||'',
+          Desa: r.Desa||'',
+          LuasRumah: (r.LuasRumah===null||r.LuasRumah===''? null : Number(r.LuasRumah)) || 0,
+          JumlahPenghuni: (r.JumlahPenghuni===null||r.JumlahPenghuni===''? null : Number(r.JumlahPenghuni)) || 0,
+          Latitude: (r.Latitude===null||r.Latitude===''? null : Number(r.Latitude)),
+          Longitude: (r.Longitude===null||r.Longitude===''? null : Number(r.Longitude))
+        };
+        await colRef.add(doc);
       }
       console.log("✅ Data tersimpan di Firebase");
-    } catch(e){
+      return true;
+    } catch (e) {
       console.error("❌ Gagal simpan ke Firebase:", e);
+      return Promise.reject(e);
     }
   }
 
+  // Load data from Firestore; if fails, fallback to LocalStorage if available
   async function loadFromFirebase(){
+    if(typeof db === 'undefined') return Promise.reject('Firestore not initialized');
     try {
       const colRef = db.collection("rutilahu");
       const snap = await colRef.get();
-      globalData = snap.docs.map(d => d.data());
+      if(snap.empty){
+        // no remote data
+        return [];
+      }
+      const arr = snap.docs.map(d => {
+        const data = d.data();
+        return {
+          Nama: data.Nama||'',
+          NoKK: data.NoKK||'',
+          NoNIK: data.NoNIK||'',
+          Alamat: data.Alamat||'',
+          Kecamatan: data.Kecamatan||'',
+          Desa: data.Desa||'',
+          LuasRumah: safeFloat(data.LuasRumah) || 0,
+          JumlahPenghuni: parseInt(data.JumlahPenghuni)||0,
+          Latitude: safeFloat(data.Latitude),
+          Longitude: safeFloat(data.Longitude)
+        };
+      });
+      globalData = arr;
       console.log("📥 Data dimuat dari Firebase:", globalData.length, "baris");
-      renderTable();
-      updateMap();
-    } catch(e){
+      return globalData;
+    } catch (e) {
       console.error("❌ Gagal ambil data dari Firebase:", e);
+      return Promise.reject(e);
     }
   }
 
   // -------------------------
-  // Table render
+  // Init & applyFilters
   // -------------------------
-  function renderTable(){
-    tbody.innerHTML = '';
-    globalData.forEach((r, idx) => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td contenteditable="true">${r.Nama||''}</td>
-        <td contenteditable="true">${r.NoKK||''}</td>
-        <td contenteditable="true">${r.NoNIK||''}</td>
-        <td contenteditable="true">${r.Alamat||''}</td>
-        <td contenteditable="true">${r.Kecamatan||''}</td>
-        <td contenteditable="true">${r.Desa||''}</td>
-        <td contenteditable="true">${r.LuasRumah||0}</td>
-        <td contenteditable="true">${r.JumlahPenghuni||0}</td>
-        <td contenteditable="true">${r.Latitude||''}</td>
-        <td contenteditable="true">${r.Longitude||''}</td>
-        <td><button class="btn btn-sm btn-success" onclick="saveRow(${idx}, this)">💾</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteRow(${idx})">🗑️</button></td>`;
-      tbody.appendChild(tr);
+  function applyFilters(){
+    const k = document.getElementById('filterKecamatan').value;
+    const d = document.getElementById('filterDesa').value;
+    const s = document.getElementById('searchInput').value.trim().toLowerCase();
+    filteredView = [];
+    globalData.forEach((row, idx) => {
+      if(k && row.Kecamatan !== k) return;
+      if(d && row.Desa !== d) return;
+      if(s){
+        const hay = ((row.Nama||'') + ' ' + (row.NoNIK||'')).toLowerCase();
+        if(!hay.includes(s)) return;
+      }
+      filteredView.push(Object.assign({}, row, {_idx: idx}));
     });
-  }
-
-  function addRow(){
-    globalData.push({Nama:'',NoKK:'',NoNIK:'',Alamat:'',Kecamatan:'',Desa:'',LuasRumah:0,JumlahPenghuni:0,Latitude:null,Longitude:null});
+    // apply saved sort if any
+    applySavedSort();
+    sortFilteredViewIfNeeded();
+    setHeaderSortUI();
+    currentPage = 1;
     renderTable();
-    saveToFirebase();
+    updateChart();
+    updateMap();
+    updateKPI();
   }
 
-  function saveRow(idx, btn){
-    const tr = btn.closest('tr').children;
-    globalData[idx] = {
-      Nama: tr[0].innerText,
-      NoKK: tr[1].innerText,
-      NoNIK: tr[2].innerText,
-      Alamat: tr[3].innerText,
-      Kecamatan: tr[4].innerText,
-      Desa: tr[5].innerText,
-      LuasRumah: parseFloat(tr[6].innerText)||0,
-      JumlahPenghuni: parseInt(tr[7].innerText)||0,
-      Latitude: parseFloat(tr[8].innerText)||null,
-      Longitude: parseFloat(tr[9].innerText)||null
-    };
-    saveToFirebase();
-  }
+  // Try load from Firebase first; if fails, fallback to localStorage
+  (async function initialLoad(){
+    // try load from firebase
+    try {
+      await loadFromFirebase();
+      populateFilters();
+      applyFilters();
+    } catch (e) {
+      console.warn('Load from Firebase failed — falling back to localStorage if available.', e);
+      if(loadFromLocal()){
+        populateFilters();
+        applyFilters();
+        console.log('Loaded data from auto-save (LocalStorage).');
+      } else {
+        applyFilters();
+      }
+    }
+    // restore selected color
+    selectedColor = localStorage.getItem(LS_COLOR) || selectedColor;
+    iconColorSel.value = selectedColor;
+    try{ document.getElementById('togglePerDesa').addEventListener('change', updateChart); }catch(e){}
+  })();
 
-  function deleteRow(idx){
-    if(!confirm("Hapus data ini?")) return;
-    globalData.splice(idx,1);
-    renderTable();
-    saveToFirebase();
-  }
-
-  // -------------------------
-  // Map update
-  // -------------------------
-  function updateMap(){
-    map.eachLayer(layer => { if(layer instanceof L.Marker) map.removeLayer(layer); });
-    globalData.forEach(r=>{
-      if(r.Latitude && r.Longitude){
-        L.marker([r.Latitude, r.Longitude]).addTo(map)
-          .bindPopup(`<b>${r.Nama}</b><br>${r.Alamat}`);
+  // Attach sorting headers after DOM ready
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","LuasRumah","JumlahPenghuni","Latitude","Longitude"];
+    document.querySelectorAll("#dataTable thead th.sortable").forEach((th, idx) => {
+      if (idx < keyMap.length) {
+        th.style.cursor = "pointer";
+        th.title = "Klik untuk urutkan";
+        th.addEventListener("click", ()=> sortByKey(keyMap[idx], th));
       }
     });
-  }
 
-  map.on('click', function(e){
-    if(selectedIndex===null){ alert("Pilih baris tabel dulu."); return; }
-    const lat = e.latlng.lat.toFixed(6);
-    const lng = e.latlng.lng.toFixed(6);
-    globalData[selectedIndex].Latitude = parseFloat(lat);
-    globalData[selectedIndex].Longitude = parseFloat(lng);
+    // reset sort button
+    const headers = document.querySelectorAll("#dataTable thead th.sortable");
+    document.getElementById('resetSort').addEventListener('click', ()=>{
+      localStorage.removeItem(LS_SORT);
+      sortConfig = { key: 'Nama', asc: true };
+      if(headers.length>0) sortByKey('Nama', headers[0]);
+    });
+
+    // apply saved sort if any (when DOM ready)
+    const saved = localStorage.getItem(LS_SORT);
+    if(saved){
+      try{
+        sortConfig = JSON.parse(saved);
+      }catch(e){}
+    } else {
+      sortConfig = { key: 'Nama', asc: true };
+    }
+    // if data already loaded, re-apply filters to ensure sort used
+    applySavedSort();
+    sortFilteredViewIfNeeded();
+    setHeaderSortUI();
     renderTable();
-    saveToFirebase();
-    updateMap();
   });
 
-  // -------------------------
-  // Init
-  // -------------------------
-  loadFromFirebase();
   </script>
 </body>
 </html>
