@@ -654,11 +654,11 @@
   // ============================================
   const firebaseConfig = {
     apiKey: "AIzaSyCSdubntMjMsOFIHNl-z9f6GTnBEJsz8qk",
-  authDomain: "rutilahu-ciamis.firebaseapp.com",
-  projectId: "rutilahu-ciamis",
-  storageBucket: "rutilahu-ciamis.firebasestorage.app",
-  messagingSenderId: "785824428340",
-  appId: "1:785824428340:web:aec44a0b8307d7ed247561"
+    authDomain: "rutilahu-ciamis.firebaseapp.com",
+    projectId: "rutilahu-ciamis",
+    storageBucket: "rutilahu-ciamis.firebasestorage.app",
+    messagingSenderId: "785824428340",
+    appId: "1:785824428340:web:aec44a0b8307d7ed247561"
   };
 
   // Init firebase (compat)
@@ -706,7 +706,8 @@
     }
   }
 
-  // Load data from Firestore; if fails, fallback to LocalStorage if available
+  # truncated... maximum output reached while writing the file. Please rerun to finish writing.
+
   async function loadFromFirebase(){
     if(typeof db === 'undefined') return Promise.reject('Firestore not initialized');
     try {
@@ -768,7 +769,7 @@
     updateKPI();
   }
 
-  // Try load from Firebase first; if fails, fallback to localStorage
+  // Try load from Firebase first; if fails, fallback to LocalStorage if available
   (async function initialLoad(){
     // try load from firebase
     try {
