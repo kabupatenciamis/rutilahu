@@ -65,7 +65,7 @@
     @media (max-width:600px){ .table-controls{ flex-wrap:wrap; } .icon-color-select{ width:100px } }
   </style>
 
-  <!-- Firebase (compat build so existing firebase.initializeApp / firebase.firestore() calls work) -->
+  <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
@@ -648,15 +648,11 @@
   // -------------------------
   // Firebase integration
   // -------------------------
-  // ================ IMPORTANT ================
-  // Ganti nilai-nilai di bawah ini dengan firebaseConfig
-  // dari Firebase Console (Project settings -> Your apps -> SDK config)
-  // ============================================
   const firebaseConfig = {
     apiKey: "AIzaSyCSdubntMjMsOFIHNl-z9f6GTnBEJsz8qk",
     authDomain: "rutilahu-ciamis.firebaseapp.com",
     projectId: "rutilahu-ciamis",
-    storageBucket: "rutilahu-ciamis.firebasestorage.app",
+    storageBucket: "rutilahu-ciamis.appspot.com",
     messagingSenderId: "785824428340",
     appId: "1:785824428340:web:aec44a0b8307d7ed247561"
   };
@@ -669,21 +665,17 @@
     console.warn("Firebase init error:", err);
   }
 
-  // Save to Firestore: deletes existing collection docs and re-adds globalData
   async function saveToFirebase(){
     if(typeof db === 'undefined') return Promise.reject('Firestore not initialized');
     try {
       const colRef = db.collection("rutilahu");
-      // delete existing documents in collection (Firestore has no native truncate; batch deletes)
       const snap = await colRef.get();
       if(!snap.empty){
         const batch = db.batch();
         snap.forEach(doc => batch.delete(doc.ref));
         await batch.commit();
       }
-      // add all entries
       for (let r of globalData){
-        // ensure numeric fields are numbers (or null)
         const doc = {
           Nama: r.Nama||'',
           NoKK: r.NoKK||'',
@@ -701,12 +693,10 @@
       console.log("✅ Data tersimpan di Firebase");
       return true;
     } catch (e) {
-      console.error("❌ Gagal simpan ke Firebase:", e);
+      console.error("Gagal simpan ke Firebase:", e);
       return Promise.reject(e);
     }
   }
-
-  # truncated... maximum output reached while writing the file. Please rerun to finish writing.
 
   async function loadFromFirebase(){
     if(typeof db === 'undefined') return Promise.reject('Firestore not initialized');
@@ -714,7 +704,6 @@
       const colRef = db.collection("rutilahu");
       const snap = await colRef.get();
       if(snap.empty){
-        // no remote data
         return [];
       }
       const arr = snap.docs.map(d => {
@@ -736,7 +725,7 @@
       console.log("📥 Data dimuat dari Firebase:", globalData.length, "baris");
       return globalData;
     } catch (e) {
-      console.error("❌ Gagal ambil data dari Firebase:", e);
+      console.error("Gagal ambil data dari Firebase:", e);
       return Promise.reject(e);
     }
   }
@@ -758,7 +747,6 @@
       }
       filteredView.push(Object.assign({}, row, {_idx: idx}));
     });
-    // apply saved sort if any
     applySavedSort();
     sortFilteredViewIfNeeded();
     setHeaderSortUI();
@@ -769,9 +757,7 @@
     updateKPI();
   }
 
-  // Try load from Firebase first; if fails, fallback to LocalStorage if available
   (async function initialLoad(){
-    // try load from firebase
     try {
       await loadFromFirebase();
       populateFilters();
@@ -786,13 +772,11 @@
         applyFilters();
       }
     }
-    // restore selected color
     selectedColor = localStorage.getItem(LS_COLOR) || selectedColor;
     iconColorSel.value = selectedColor;
     try{ document.getElementById('togglePerDesa').addEventListener('change', updateChart); }catch(e){}
   })();
 
-  // Attach sorting headers after DOM ready
   document.addEventListener('DOMContentLoaded', ()=>{
     const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","LuasRumah","JumlahPenghuni","Latitude","Longitude"];
     document.querySelectorAll("#dataTable thead th.sortable").forEach((th, idx) => {
@@ -803,7 +787,6 @@
       }
     });
 
-    // reset sort button
     const headers = document.querySelectorAll("#dataTable thead th.sortable");
     document.getElementById('resetSort').addEventListener('click', ()=>{
       localStorage.removeItem(LS_SORT);
@@ -811,7 +794,6 @@
       if(headers.length>0) sortByKey('Nama', headers[0]);
     });
 
-    // apply saved sort if any (when DOM ready)
     const saved = localStorage.getItem(LS_SORT);
     if(saved){
       try{
@@ -820,13 +802,11 @@
     } else {
       sortConfig = { key: 'Nama', asc: true };
     }
-    // if data already loaded, re-apply filters to ensure sort used
     applySavedSort();
     sortFilteredViewIfNeeded();
     setHeaderSortUI();
     renderTable();
   });
-
   </script>
 </body>
 </html>
