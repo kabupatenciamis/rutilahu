@@ -335,6 +335,7 @@
       }));
       populateFilters();
       applyFilters();
+    updateKPI();   // memastikan KPI tampil setelah load
       saveToLocal();
     };
     reader.readAsArrayBuffer(f);
@@ -467,6 +468,7 @@
     globalData.push(newObj);
     populateFilters();
     applyFilters();
+    updateKPI();   // memastikan KPI tampil setelah load
     saveToLocal();
     selectedGlobalIndex = globalData.length - 1;
     setTimeout(()=>{
@@ -493,6 +495,7 @@
     };
     populateFilters();
     applyFilters();
+    updateKPI();   // memastikan KPI tampil setelah load
     saveToLocal();
   }
 
@@ -503,6 +506,7 @@
     globalData.splice(idx,1);
     populateFilters();
     applyFilters();
+    updateKPI();   // memastikan KPI tampil setelah load
     saveToLocal();
     selectedGlobalIndex = null;
   }
@@ -576,6 +580,7 @@
     globalData[selectedGlobalIndex].Latitude = lat;
     globalData[selectedGlobalIndex].Longitude = lng;
     applyFilters();
+    updateKPI();   // memastikan KPI tampil setelah load
     saveToLocal();
     const m = L.marker([lat, lng], {icon: createSvgIcon()}).addTo(map).bindPopup('Koordinat disimpan ke baris terpilih:<br>' + lat + ', ' + lng).openPopup();
     setTimeout(()=>{ map.removeLayer(m); }, 1800);
@@ -606,6 +611,7 @@
     if(!confirm('Kosongkan semua data yang sedang dimuat (tidak menghapus file asli)?')) return;
     globalData = [];
     applyFilters();
+    updateKPI();   // memastikan KPI tampil setelah load
     populateFilters();
     selectedGlobalIndex = null;
     saveToLocal();
@@ -762,14 +768,17 @@
       await loadFromFirebase();
       populateFilters();
       applyFilters();
+    updateKPI();   // memastikan KPI tampil setelah load
     } catch (e) {
       console.warn('Load from Firebase failed — falling back to localStorage if available.', e);
       if(loadFromLocal()){
         populateFilters();
         applyFilters();
+    updateKPI();   // memastikan KPI tampil setelah load
         console.log('Loaded data from auto-save (LocalStorage).');
       } else {
         applyFilters();
+    updateKPI();   // memastikan KPI tampil setelah load
       }
     }
     selectedColor = localStorage.getItem(LS_COLOR) || selectedColor;
