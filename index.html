@@ -3,232 +3,239 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SIRUCI — Dashboard Rutilahu (Firebase)</title>
+  <title>SIRUCI — Dashboard Rutilahu (Final)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
     :root{
-      --bg: #f4f7fa;
+      /* Palet Warna Ungu */
+      --bg: #f5f3ff;
       --card-bg: #ffffff;
       --text: #1f2937;
       --muted: #6b7280;
-      --table-head-bg: #343a40;
+      --table-head-bg: #4a007a; /* Ungu gelap */
       --table-head-text: #fff;
       --kpi-blue: #e6f0ff;
       --kpi-green: #e9f7ec;
       --kpi-orange: #fff4e6;
-      --kpi-purple: #f3eaff;
+      --kpi-purple: #f1e0ff;
+      --main-purple: #6b21a8;
+      --light-purple: #8b5cf6;
     }
-    body { background: var(--bg); color: var(--text); transition: background 0.3s ease, color 0.3s ease; }
+    body { background: var(--bg); color: var(--text); transition: background 0.3s ease, color 0.3s ease; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
     .card { border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.06); background: var(--card-bg); transition: background 0.3s ease, color 0.3s ease; }
-    #map { height: 420px; border-radius: 8px; }
-    .leaflet-marker-icon { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45)); }
-    tr.selected { background: #ffeaa7 !important; }
-    .small-btn { padding: .25rem .45rem; font-size: .85rem; }
-    .kpi-card { text-align:center; padding:1rem; border-radius:12px; background: var(--card-bg); transition: all 0.25s ease; }
-    .kpi-value { font-size:1.8rem; font-weight:bold; }
-    .kpi-icon { font-size:2rem; margin-bottom:4px; }
-
-    .kpi-blue{ background: var(--kpi-blue); }
-    .kpi-green{ background: var(--kpi-green); }
-    .kpi-orange{ background: var(--kpi-orange); }
-    .kpi-purple{ background: var(--kpi-purple); }
-
-    .table-controls{ display:flex; gap:.5rem; align-items:center; }
-    .page-btn{ min-width:36px; }
-
-    #toggleTheme.animate { transform: rotate(360deg); transition: transform 0.6s ease; }
-
-    body.dark{
-      --bg: #0b1220;
-      --card-bg: #0f1724;
-      --text: #e6eef8;
-      --muted: #9aa8bf;
-      --table-head-bg: #111827;
-      --table-head-text: #e6eef8;
-      --kpi-blue: #1e3a8a33;
-      --kpi-green: #064e3b33;
-      --kpi-orange: #7c2d1233;
-      --kpi-purple: #4c1d9533;
+    #map { height: 50vh; min-height: 400px; border-radius: 12px; z-index: 1; }
+    .kpi-card { text-align: center; font-weight: 500; transition: transform 0.3s ease; }
+    .kpi-card:hover { transform: translateY(-5px); }
+    .kpi-card h5 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--muted); }
+    .kpi-card p { font-size: 2.2rem; font-weight: 700; margin-bottom: 0; transition: color 0.3s ease; }
+    .kpi-blue { background: var(--kpi-blue); color: #3b82f6; }
+    .kpi-green { background: var(--kpi-green); color: #22c55e; }
+    .kpi-orange { background: var(--kpi-orange); color: #f97316; }
+    .kpi-purple { background: var(--kpi-purple); color: var(--main-purple); }
+    .small-btn { font-size: 0.75rem; padding: 0.15rem 0.5rem; }
+    #dataTable th.sortable { cursor: pointer; position: relative; }
+    #dataTable th.sortable.asc::after { content: ' ▲'; font-size: 0.8em; }
+    #dataTable th.sortable.desc::after { content: ' ▼'; font-size: 0.8em; }
+    #dataTable tbody td { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+    .table-responsive { overflow: auto; }
+    #dataTable tbody tr.selected { background-color: #e3f2fd !important; }
+    #login-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(5px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1050;
     }
-
-    h3, h5, .form-label, label, th, td, .kpi-card div { color: var(--text); transition: color 0.3s ease; }
-    .text-muted { color: var(--muted) !important; transition: color 0.3s ease; }
-
-    .icon-color-select { width:150px; }
-
-    th.sortable { cursor: pointer; position: relative; }
-    th.sortable::after { content: ""; position: absolute; right: 8px; font-size: 0.8rem; }
-    th.sortable.asc::after { content: "⬆️"; }
-    th.sortable.desc::after { content: "⬇️"; }
-
-    @media (max-width:600px){ .table-controls{ flex-wrap:wrap; } .icon-color-select{ width:100px } }
+    .dark-mode {
+      --bg: #1f2937;
+      --card-bg: #374151;
+      --text: #f3f4f6;
+      --muted: #d1d5db;
+      --table-head-bg: #111827;
+      --table-head-text: #fff;
+    }
+    .dark-mode .card { color: var(--text); }
   </style>
-
-  <!-- Firebase compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 </head>
-<body class="p-4">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <h3>🏠 SIRUCI — Sistem Informasi Rumah Tidak Layak Huni Kabupaten Ciamis</h3>
-      <div class="d-flex gap-2 align-items-center">
-        <select id="iconColor" class="form-select form-select-sm icon-color-select" title="Warna ikon peta">
-          <option value="blue">Biru</option>
-          <option value="green">Hijau</option>
-          <option value="red">Merah</option>
-          <option value="orange">Oranye</option>
-          <option value="purple">Ungu</option>
-        </select>
-        <button class="btn btn-sm btn-outline-secondary" id="downloadTemplate">⬇️ Unduh Template Excel</button>
-        <button class="btn btn-sm btn-outline-secondary" id="clearStorage">🗄️ Hapus Auto-save</button>
-        <button class="btn btn-sm btn-outline-secondary" id="toggleTheme">🌓 Tema Gelap</button>
-        <a id="downloadLink" style="display:none"></a>
-      </div>
-    </div>
+<body>
 
-    <div class="row g-3 mb-3">
-      <div class="col-md-3">
-        <div class="kpi-card kpi-blue">
-          <div class="kpi-icon">📊</div>
-          <div class="kpi-value" id="totalData">0</div>
-          <div>Total Data Rutilahu</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="kpi-card kpi-green">
-          <div class="kpi-icon">🏘️</div>
-          <div class="kpi-value" id="totalKecamatan">0</div>
-          <div>Total Kecamatan</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="kpi-card kpi-orange">
-          <div class="kpi-icon">🏡</div>
-          <div class="kpi-value" id="totalDesa">0</div>
-          <div>Total Desa</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="kpi-card kpi-purple">
-          <div class="kpi-icon">👨‍👩‍👧‍👦</div>
-          <div class="kpi-value" id="totalPenghuni">0</div>
-          <div>Total Penghuni</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card p-3 mb-3">
-      <div class="row g-2">
-        <div class="col-md-6">
-          <label class="form-label">Unggah file Excel (.xlsx)</label>
-          <input type="file" id="fileInput" class="form-control" accept=".xlsx,.xls">
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Filter Kecamatan</label>
-          <select id="filterKecamatan" class="form-select"><option value="">Semua</option></select>
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Filter Desa</label>
-          <select id="filterDesa" class="form-select"><option value="">Semua</option></select>
-        </div>
-        <div class="col-md-2">
-          <label class="form-label">Cari</label>
-          <input id="searchInput" class="form-control" placeholder="nama / No NIK...">
-        </div>
-      </div>
-
-      <div class="mt-3 d-flex gap-2">
-        <button class="btn btn-success" onclick="addRow()">➕ Tambah Data</button>
-        <button class="btn btn-warning" onclick="exportExcel()">⬇️ Export Excel</button>
-        <button class="btn btn-outline-primary" id="clearData">🧹 Bersihkan Data</button>
-        <div class="ms-auto text-muted align-self-center">Klik satu baris tabel untuk memilihnya — lalu klik peta untuk mengisi koordinat</div>
-      </div>
-
-      <div class="mt-2">
-        <small class="text-muted">Auto-save: setiap perubahan (tambah/simpan/hapus/koordinat) otomatis tersimpan di browser (LocalStorage). Anda bisa menghapus auto-save dengan tombol "Hapus Auto-save".</small>
-      </div>
-    </div>
-
-    <div class="card p-3 mb-3">
-      <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0">📋 Data Rutilahu</h5>
-        <div class="table-controls">
-          <label class="mb-0">Tampilkan</label>
-          <select id="pageSizeSel" class="form-select form-select-sm" style="width:90px"><option value="10">10</option><option value="20">20</option><option value="30">30</option></select>
-          <div id="pagination" class="btn-group btn-group-sm" role="group"></div>
-          <button class="btn btn-sm btn-outline-secondary" id="resetSort">🔄 Reset Urutan</button>
-        </div>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-striped table-bordered" id="dataTable">
-          <thead>
-            <tr>
-              <th class="sortable">Nama</th>
-              <th class="sortable">No KK</th>
-              <th class="sortable">No NIK</th>
-              <th class="sortable">Alamat</th>
-              <th class="sortable">Kecamatan</th>
-              <th class="sortable">Desa</th>
-              <th class="sortable">Luas Rumah</th>
-              <th class="sortable">Jumlah Penghuni</th>
-              <th class="sortable">Latitude</th>
-              <th class="sortable">Longitude</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="d-flex justify-content-between align-items-center mt-2">
-        <small id="pageInfo" class="text-muted"></small>
-        <div></div>
-      </div>
-    </div>
-
-    <div class="row g-3">
-      <div class="col-lg-6">
-        <div class="card p-3">
-          <h5>📈 Grafik: Jumlah Rutilahu per Kecamatan</h5>
-          <div class="d-flex justify-content-end mb-2">
-            <div class="form-check form-switch">
-              <input class="form-check-input" type="checkbox" id="togglePerDesa">
-              <label class="form-check-label" for="togglePerDesa">Tampilkan per Desa</label>
-            </div>
-          </div>
-          <div style="height:300px"><canvas id="chartCanvas"></canvas></div>
-        </div>
-      </div>
-      <div class="col-lg-6">
-        <div class="card p-3">
-          <h5>🗺️ Peta Sebaran (klik peta untuk isi koordinat ke baris terpilih)</h5>
-          <div id="map"></div>
-        </div>
-      </div>
-    </div>
-
+<div class="container-fluid p-4">
+  <div class="d-flex align-items-center mb-4">
+    <h3 class="me-auto" style="color:var(--main-purple);">Dashboard SIRUCI <small class="text-muted">(Sistem Informasi Rutilahu Ciamis)</small></h3>
+    <a href="#" id="logoutBtn" class="btn btn-sm btn-outline-danger">
+      <i class="fa-solid fa-right-from-bracket"></i> Logout
+    </a>
   </div>
 
-  <!-- Libs -->
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="card p-3 kpi-card kpi-blue">
+        <h5>Total Data</h5>
+        <p id="totalData">0</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 kpi-card kpi-green">
+        <h5>Kecamatan</h5>
+        <p id="totalKecamatan">0</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 kpi-card kpi-orange">
+        <h5>Desa</h5>
+        <p id="totalDesa">0</p>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card p-3 kpi-card kpi-purple">
+        <h5>Total Penghuni</h5>
+        <p id="totalPenghuni">0</p>
+      </div>
+    </div>
+  </div>
 
-  <script>
+  <div class="row g-4 mb-4">
+    <div class="col-md-6">
+      <div class="card p-3 h-100">
+        <h5 class="card-title">Peta Persebaran Data</h5>
+        <div id="map"></div>
+        <small class="ms-auto text-muted mt-2">
+          (Admin) Klik pada peta untuk menyimpan koordinat ke baris yang dipilih.
+        </small>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card p-3 h-100">
+        <h5 class="card-title">Grafik Data</h5>
+        <div class="d-flex align-items-center mb-2">
+          <div class="form-check form-switch ms-auto">
+            <input class="form-check-input" type="checkbox" role="switch" id="togglePerDesa" checked>
+            <label class="form-check-label" for="togglePerDesa">Tampilkan per Desa</label>
+          </div>
+        </div>
+        <div style="height: calc(100% - 40px);"><canvas id="chartCanvas"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card p-3">
+    <h5 class="card-title">Tabel Data</h5>
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <div class="input-group" style="max-width:300px;">
+        <span class="input-group-text">🔍</span>
+        <input type="text" class="form-control" placeholder="Cari Nama/NIK..." id="searchInput">
+      </div>
+      <select id="filterKecamatan" class="form-select" style="max-width:200px;"></select>
+      <select id="filterDesa" class="form-select" style="max-width:200px;"></select>
+      
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-secondary" id="resetFilters">
+          <i class="fa-solid fa-filter-circle-xmark"></i> Reset Filter
+        </button>
+        <button type="button" class="btn btn-outline-secondary" id="resetSort">
+          <i class="fa-solid fa-sort"></i> Reset Urutan
+        </button>
+      </div>
+      
+      <div class="ms-auto btn-group" role="group">
+        <label for="fileInput" class="btn btn-outline-secondary">
+          <i class="fa-solid fa-file-excel"></i> <span>Unggah XLSX</span>
+          <input type="file" id="fileInput" style="display:none;" accept=".xlsx,.xls,.csv">
+        </label>
+        <button type="button" class="btn btn-outline-secondary" id="downloadTemplate">
+          <i class="fa-solid fa-download"></i> Template
+        </button>
+        <button type="button" class="btn btn-success" onclick="addRow()">
+          <i class="fa-solid fa-plus-circle"></i> Tambah Baris
+        </button>
+        <button type="button" class="btn btn-outline-primary" onclick="exportExcel()">
+          <i class="fa-solid fa-share-from-square"></i> Ekspor XLSX
+        </button>
+        <button type="button" class="btn btn-danger" id="clearData">
+          <i class="fa-solid fa-trash-can"></i> Hapus Semua Data
+        </button>
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table id="dataTable" class="table table-hover table-striped">
+        <thead class="bg-dark text-white">
+          <tr>
+            <th class="sortable">Nama</th>
+            <th class="sortable">No. KK</th>
+            <th class="sortable">No. NIK</th>
+            <th class="sortable">Alamat</th>
+            <th class="sortable">Kecamatan</th>
+            <th class="sortable">Desa</th>
+            <th class="sortable">Luas Rumah</th>
+            <th class="sortable">Jml Penghuni</th>
+            <th class="sortable">Latitude</th>
+            <th class="sortable">Longitude</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <div class="d-flex align-items-center">
+        <span>Baris per halaman:</span>
+        <select id="pageSizeSel" class="form-select form-select-sm ms-2" style="width: auto;">
+          <option value="10">10</option>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <div id="pagination" class="btn-group" role="group"></div>
+      <div id="pageInfo" class="text-muted"></div>
+    </div>
+  </div>
+</div>
+
+<div id="login-overlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(5px);display:flex;justify-content:center;align-items:center;z-index:1050;">
+  <div class="card p-4" style="width:100%;max-width:400px;text-align:center;">
+    <h5 class="card-title mb-3">Login ke SIRUCI</h5>
+    <div class="mb-3">
+      <input type="email" id="adminEmail" class="form-control" placeholder="Email Admin (hanya admin)" disabled>
+    </div>
+    <div class="mb-3">
+      <input type="password" id="adminPassword" class="form-control" placeholder="Password Admin">
+    </div>
+    <div class="d-grid gap-2">
+      <button class="btn btn-primary" id="loginAdminBtn">Login sebagai Admin</button>
+      <button class="btn btn-outline-secondary" id="loginViewerBtn">Login sebagai Viewer</button>
+    </div>
+    <div id="loginErrorMsg" class="text-danger mt-2" style="display:none;"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<script>
   // -------------------------
   // Config / state
   // -------------------------
-  const LS_KEY = 'rutilahu_ciamis_autosave_v1';
   const LS_THEME = 'rutilahu_theme_v1';
   const LS_COLOR = 'rutilahu_icon_color_v1';
   const LS_SORT = 'rutilahu_sort_v1';
   const COLOR_MAP = {
-    blue:  {fill:'#3b82f6', stroke:'#60a5fa', strokeDark:'#93c5fd'},
+    blue:  {fill:'#6b21a8', stroke:'#8b5cf6', strokeDark:'#f3e8ff'},
     green: {fill:'#22c55e', stroke:'#16a34a', strokeDark:'#86efac'},
     red:   {fill:'#ef4444', stroke:'#b91c1c', strokeDark:'#fca5a5'},
     orange:{fill:'#f97316', stroke:'#c2410c', strokeDark:'#fdba74'},
-    purple:{fill:'#8b5cf6', stroke:'#6d28d9', strokeDark:'#c4b5fd'}
+    purple:{fill:'#6b21a8', stroke:'#8b5cf6', strokeDark:'#f3e8ff'}
   };
 
   let globalData = [];
@@ -243,70 +250,148 @@
   let pageSize = parseInt(localStorage.getItem('rutilahu_page_size')||'10',10);
 
   // -------------------------
+  // Firebase Configuration
+  // -------------------------
+  const firebaseConfig = {
+    apiKey: "AIzaSyCSdubntMjMsOFIHNl-z9f6GTnBEJsz8qk",
+    authDomain: "rutilahu-ciamis.firebaseapp.com",
+    projectId: "rutilahu-ciamis",
+    storageBucket: "rutilahu-ciamis.appspot.com",
+    messagingSenderId: "785824428340",
+    appId: "1:785824428340:web:aec44a0b8307d7ed247561",
+    databaseURL: "https://rutilahu-ciamis-default-rtdb.firebaseio.com/"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+  
+  // -------------------------
+  // Login & User Role
+  // -------------------------
+  const adminEmail = 'admin@ciamis.go.id';
+  let userRole = null;
+
+  function showLoginOverlay(){
+    document.getElementById('login-overlay').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function hideLoginOverlay(){
+    document.getElementById('login-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function applyUserRole(){
+    const isAdmin = userRole === 'admin';
+    
+    document.getElementById('fileInput').disabled = !isAdmin;
+    document.getElementById('downloadTemplate').disabled = !isAdmin;
+    const addRowBtn = document.querySelector('button[onclick="addRow()"]');
+    if (addRowBtn) addRowBtn.disabled = !isAdmin;
+    const exportExcelBtn = document.querySelector('button[onclick="exportExcel()"]');
+    if (exportExcelBtn) exportExcelBtn.disabled = !isAdmin;
+    document.getElementById('clearData').disabled = !isAdmin;
+    
+    document.querySelectorAll('#dataTable tbody td[contenteditable]').forEach(el => el.setAttribute('contenteditable', isAdmin));
+    document.querySelectorAll('.btn-danger, .btn-success').forEach(el => el.style.display = isAdmin ? '' : 'none');
+    const tableHint = document.querySelector('.ms-auto.text-muted');
+    if (tableHint) tableHint.style.display = isAdmin ? '' : 'none';
+
+    document.getElementById('logoutBtn').style.display = userRole ? '' : 'none';
+
+    if (userRole) {
+      hideLoginOverlay();
+    }
+  }
+
+  // Handle Firebase Auth State Changes
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      if (user.isAnonymous) {
+        userRole = 'viewer';
+      } else if (user.email === adminEmail) {
+        userRole = 'admin';
+      } else {
+        userRole = 'viewer';
+      }
+      applyUserRole();
+      loadFromFirebase();
+    } else {
+      userRole = null;
+      applyUserRole();
+      showLoginOverlay();
+    }
+  });
+
+  // Event Listeners for Login Buttons
+  document.getElementById('loginAdminBtn').addEventListener('click', () => {
+    const password = document.getElementById('adminPassword').value;
+    const errorMsg = document.getElementById('loginErrorMsg');
+    // Asumsi email admin telah didaftarkan di Firebase
+    auth.signInWithEmailAndPassword(adminEmail, password)
+      .then(() => {
+        errorMsg.style.display = 'none';
+      })
+      .catch((error) => {
+        errorMsg.innerText = 'Login gagal: ' + error.message;
+        errorMsg.style.display = 'block';
+      });
+  });
+
+  document.getElementById('loginViewerBtn').addEventListener('click', () => {
+    auth.signInAnonymously()
+      .then(() => {})
+      .catch((error) => {
+        alert('Login sebagai Viewer gagal: ' + error.message);
+      });
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    auth.signOut().then(() => {
+      // Sign-out successful. onAuthStateChanged will handle UI changes
+    }).catch((error) => {
+      console.error("Logout error:", error);
+    });
+  });
+  
+  // -------------------------
   // Helpers
   // -------------------------
   function safeFloat(v){ let n = parseFloat(v); return isNaN(n)? null : n; }
   function escapeHtml(s){ if(s==null) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
 
   // -------------------------
-  // Theme & Icon color handling
+  // Database Save/Load with Firebase
   // -------------------------
-  const themeBtn = document.getElementById('toggleTheme');
-  const iconColorSel = document.getElementById('iconColor');
-  let selectedColor = localStorage.getItem(LS_COLOR) || 'blue';
-  iconColorSel.value = selectedColor;
-
-  function applySavedTheme(){
-    const t = localStorage.getItem(LS_THEME)||'light';
-    if(t==='dark'){ document.body.classList.add('dark'); themeBtn.innerText = '🌙 Gelap (Aktif)'; }
-    else { document.body.classList.remove('dark'); themeBtn.innerText = '☀️ Gelap'; }
+  function saveToFirebase(){
+    if (userRole === 'admin') {
+      db.ref('rutilahu_data').set(globalData)
+        .then(() => { console.log('Data saved to Firebase.'); })
+        .catch(e => { console.error('Failed to save to Firebase:', e); });
+    }
   }
-  applySavedTheme();
 
-  themeBtn.addEventListener('click', ()=>{
-    themeBtn.classList.add('animate');
-    setTimeout(()=> themeBtn.classList.remove('animate'), 600);
-    if(document.body.classList.contains('dark')){ document.body.classList.remove('dark'); localStorage.setItem(LS_THEME,'light'); themeBtn.innerText='☀️ Gelap'; }
-    else{ document.body.classList.add('dark'); localStorage.setItem(LS_THEME,'dark'); themeBtn.innerText='🌙 Gelap (Aktif)'; }
-    setTimeout(()=> updateMap(), 320);
-  });
-
-  iconColorSel.addEventListener('change', (e)=>{
-    selectedColor = e.target.value;
-    localStorage.setItem(LS_COLOR, selectedColor);
-    updateMap();
-  });
-
-  // -------------------------
-  // LocalStorage auto-save
-  // -------------------------
-  function saveToLocal(){
-    try{
-      localStorage.setItem(LS_KEY, JSON.stringify(globalData));
-      // also save to Firebase (cloud) in background
-      saveToFirebase().catch(e => console.warn('Gagal simpan ke Firebase (background):', e));
-    }catch(e){ console.warn('Gagal simpan',e); }
-  }
-  function loadFromLocal(){
-    try{
-      const s = localStorage.getItem(LS_KEY);
-      if(!s) return false;
-      const parsed = JSON.parse(s);
-      if(Array.isArray(parsed)){
-        globalData = parsed.map(r=>({
+  function loadFromFirebase(){
+    db.ref('rutilahu_data').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (Array.isArray(data)) {
+        globalData = data.map(r=>({
           Nama: r.Nama||'', NoKK: r.NoKK||'', NoNIK: r.NoNIK||'', Alamat: r.Alamat||'', Kecamatan: r.Kecamatan||'', Desa: r.Desa||'',
           LuasRumah: safeFloat(r.LuasRumah) || 0, JumlahPenghuni: parseInt(r.JumlahPenghuni)||0,
           Latitude: safeFloat(r.Latitude), Longitude: safeFloat(r.Longitude)
         }));
-        return true;
+      } else {
+        globalData = [];
       }
-      return false;
-    }catch(e){ console.warn('Gagal load local', e); return false; }
+      populateFilters();
+      applyFilters();
+      console.log('Data loaded from Firebase.');
+    }, (error) => {
+      console.error('Error loading data from Firebase:', error);
+    });
   }
-
-  document.getElementById('clearStorage').addEventListener('click', ()=>{
-    if(confirm('Hapus auto-save dari browser?')){ localStorage.removeItem(LS_KEY); alert('Auto-save dihapus. Reload halaman untuk memulai dari nol atau upload file Excel.'); }
-  });
 
   // -------------------------
   // File upload
@@ -335,8 +420,7 @@
       }));
       populateFilters();
       applyFilters();
-    updateKPI();   // memastikan KPI tampil setelah load
-      saveToLocal();
+      saveToFirebase();
     };
     reader.readAsArrayBuffer(f);
   }
@@ -360,6 +444,12 @@
   document.getElementById('searchInput').addEventListener('input', applyFilters);
   document.getElementById('pageSizeSel').value = pageSize;
   document.getElementById('pageSizeSel').addEventListener('change', (e)=>{ pageSize = parseInt(e.target.value,10); localStorage.setItem('rutilahu_page_size', String(pageSize)); currentPage = 1; renderTable(); });
+  document.getElementById('resetFilters').addEventListener('click', ()=>{
+      document.getElementById('filterKecamatan').value = '';
+      document.getElementById('filterDesa').value = '';
+      document.getElementById('searchInput').value = '';
+      applyFilters();
+  });
 
   // -------------------------
   // Sorting
@@ -417,20 +507,25 @@
     pageSlice.forEach((r, i) => {
       const tr = document.createElement('tr');
       tr.dataset.idx = r._idx;
+      const isAdmin = userRole === 'admin';
       tr.innerHTML = `
-        <td contenteditable="true">${escapeHtml(r.Nama)}</td>
-        <td contenteditable="true">${escapeHtml(r.NoKK)}</td>
-        <td contenteditable="true">${escapeHtml(r.NoNIK)}</td>
-        <td contenteditable="true">${escapeHtml(r.Alamat)}</td>
-        <td contenteditable="true">${escapeHtml(r.Kecamatan)}</td>
-        <td contenteditable="true">${escapeHtml(r.Desa)}</td>
-        <td contenteditable="true">${r.LuasRumah ?? ''}</td>
-        <td contenteditable="true">${r.JumlahPenghuni ?? ''}</td>
-        <td contenteditable="true">${r.Latitude ?? ''}</td>
-        <td contenteditable="true">${r.Longitude ?? ''}</td>
+        <td contenteditable="${isAdmin}">${escapeHtml(r.Nama)}</td>
+        <td contenteditable="${isAdmin}">${escapeHtml(r.NoKK)}</td>
+        <td contenteditable="${isAdmin}">${escapeHtml(r.NoNIK)}</td>
+        <td contenteditable="${isAdmin}">${escapeHtml(r.Alamat)}</td>
+        <td contenteditable="${isAdmin}">${escapeHtml(r.Kecamatan)}</td>
+        <td contenteditable="${isAdmin}">${escapeHtml(r.Desa)}</td>
+        <td contenteditable="${isAdmin}">${r.LuasRumah ?? ''}</td>
+        <td contenteditable="${isAdmin}">${r.JumlahPenghuni ?? ''}</td>
+        <td contenteditable="${isAdmin}">${r.Latitude ?? ''}</td>
+        <td contenteditable="${isAdmin}">${r.Longitude ?? ''}</td>
         <td>
-          <button class="btn btn-sm btn-success small-btn" onclick="saveRow(this)">💾</button>
-          <button class="btn btn-sm btn-danger small-btn" onclick="deleteRow(this)">🗑️</button>
+          <button class="btn btn-sm btn-success small-btn" onclick="saveRow(this)" style="display:${isAdmin?'':'none'}">
+            <i class="fa-solid fa-save"></i>
+          </button>
+          <button class="btn btn-sm btn-danger small-btn" onclick="deleteRow(this)" style="display:${isAdmin?'':'none'}">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
         </td>`;
       tr.addEventListener('click', function(e){ if(e.target.tagName === 'BUTTON') return; selectRow(r._idx, tr); });
       tbody.appendChild(tr);
@@ -452,7 +547,7 @@
     if(end - start < maxButtons -1) start = Math.max(1, end - maxButtons +1);
     for(let p = start; p<=end; p++){
       const cls = p===currentPage ? 'btn-primary' : 'btn-outline-secondary';
-      pg.appendChild(createBtn(p, ()=>{ currentPage = p; renderTable(); }, false, cls));
+      pg.appendChild(createBtn(p, ()=>{ currentPage = p; renderTable(); } , false, cls));
     }
     pg.appendChild(createBtn('⟩', ()=>{ if(currentPage<totalPages){ currentPage++; renderTable(); } }, currentPage===totalPages));
   }
@@ -464,12 +559,12 @@
   }
 
   function addRow(){
+    if (userRole !== 'admin') return;
     const newObj = { Nama: '', NoKK: '', NoNIK: '', Alamat:'', Kecamatan:'', Desa:'', LuasRumah:0, JumlahPenghuni:0, Latitude:null, Longitude:null };
     globalData.push(newObj);
     populateFilters();
     applyFilters();
-    updateKPI();   // memastikan KPI tampil setelah load
-    saveToLocal();
+    saveToFirebase();
     selectedGlobalIndex = globalData.length - 1;
     setTimeout(()=>{
       const tr = [...document.querySelectorAll('#dataTable tbody tr')].find(t=> parseInt(t.dataset.idx)===selectedGlobalIndex);
@@ -478,6 +573,7 @@
   }
 
   function saveRow(btn){
+    if (userRole !== 'admin') return;
     const tr = btn.closest('tr');
     const idx = parseInt(tr.dataset.idx);
     const cells = tr.querySelectorAll('td');
@@ -495,19 +591,18 @@
     };
     populateFilters();
     applyFilters();
-    updateKPI();   // memastikan KPI tampil setelah load
-    saveToLocal();
+    saveToFirebase();
   }
 
   function deleteRow(btn){
+    if (userRole !== 'admin') return;
     const tr = btn.closest('tr');
     const idx = parseInt(tr.dataset.idx);
     if(!confirm('Hapus data ini?')) return;
     globalData.splice(idx,1);
     populateFilters();
     applyFilters();
-    updateKPI();   // memastikan KPI tampil setelah load
-    saveToLocal();
+    saveToFirebase();
     selectedGlobalIndex = null;
   }
 
@@ -527,25 +622,25 @@
     let title = perDesa ? 'Jumlah Rutilahu per Desa' : 'Jumlah Rutilahu per Kecamatan';
     if(filterKec) title += ' — Kec: ' + filterKec;
     if(filterDesa) title += ', Desa: ' + filterDesa;
-    chart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Jumlah Rutilahu', data: values }] }, options: { responsive:true, maintainAspectRatio:false, plugins: { title: { display: true, text: title } } } });
+    chart = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: 'Jumlah Rutilahu', data: values, backgroundColor: 'var(--main-purple)' }] }, options: { responsive:true, maintainAspectRatio:false, plugins: { title: { display: true, text: title, color: 'var(--text)' }, legend: { display: false } }, scales: { x: { ticks: { color: 'var(--muted)' }, grid: { color: 'rgba(0,0,0,0.05)' } }, y: { ticks: { color: 'var(--muted)' }, grid: { color: 'rgba(0,0,0,0.05)' } } } } });
   }
 
   // -------------------------
   // Map (SVG icons + bounce)
   // -------------------------
   function getSvgIconDataUrl(colorKey, isDark){
-    const c = COLOR_MAP[colorKey] || COLOR_MAP.blue;
+    const c = COLOR_MAP[colorKey] || COLOR_MAP.purple;
     if(isDark){
-      return 'data:image/svg+xml;utf8,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'><path fill='%23ffffff' stroke='"+c.strokeDark+"' stroke-width='0.9' d='M12 2l7 6v9a1 1 0 0 1-1 1h-4v-6H10v6H6a1 1 0 0 1-1-1V8l7-6z'/><circle cx='12' cy='10' r='1.2' fill='"+c.strokeDark+"' /></svg>");
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="${c.strokeDark}" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>`);
     } else {
-      return 'data:image/svg+xml;utf8,' + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24'><path fill='"+c.fill+"' stroke='"+c.stroke+"' stroke-width='0.9' d='M12 2l7 6v9a1 1 0 0 1-1 1h-4v-6H10v6H6a1 1 0 0 1-1-1V8l7-6z'/><circle cx='12' cy='10' r='1.2' fill='%23ffffff' /></svg>");
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="${c.fill}" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>`);
     }
   }
 
   function createSvgIcon(){
     const isDark = document.body.classList.contains('dark');
     return L.icon({
-      iconUrl: getSvgIconDataUrl(selectedColor, isDark),
+      iconUrl: getSvgIconDataUrl('purple', isDark),
       iconSize: [36,36],
       iconAnchor: [18,36],
       popupAnchor: [0,-30]
@@ -566,7 +661,14 @@
     const icon = createSvgIcon();
     filteredView.forEach(r => {
       if(r.Latitude != null && r.Longitude != null){
-        const m = L.marker([r.Latitude, r.Longitude], {icon}).bindPopup(`<b>${escapeHtml(r.Nama)}</b><br>${escapeHtml(r.Alamat)}<br>Kec: ${escapeHtml(r.Kecamatan)} | Desa: ${escapeHtml(r.Desa)}`);
+        const m = L.marker([r.Latitude, r.Longitude], {icon}).bindPopup(`
+          <div style="font-size: 1rem; line-height: 1.5;">
+            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-user" style="color: var(--main-purple);"></i> Nama:</b> ${escapeHtml(r.Nama)}</p>
+            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-id-card" style="color: var(--muted);"></i> No. NIK:</b> ${escapeHtml(r.NoNIK)}</p>
+            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-location-dot" style="color: var(--muted);"></i> Alamat:</b> ${escapeHtml(r.Alamat)}</p>
+            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-map-pin" style="color: var(--muted);"></i> Lokasi:</b> Kec. ${escapeHtml(r.Kecamatan)} | Desa ${escapeHtml(r.Desa)}</p>
+          </div>
+        `);
         markersLayer.addLayer(m);
         m.on('add', ()=> bounceMarker(m));
       }
@@ -574,14 +676,17 @@
   }
 
   map.on('click', function(e){
+    if (userRole !== 'admin') {
+      alert('Anda tidak memiliki izin untuk mengedit data.');
+      return;
+    }
     const lat = parseFloat(e.latlng.lat.toFixed(6));
     const lng = parseFloat(e.latlng.lng.toFixed(6));
     if(selectedGlobalIndex === null){ alert('Silakan pilih satu baris pada tabel terlebih dahulu (klik baris) agar koordinat bisa diisi.'); return; }
     globalData[selectedGlobalIndex].Latitude = lat;
     globalData[selectedGlobalIndex].Longitude = lng;
     applyFilters();
-    updateKPI();   // memastikan KPI tampil setelah load
-    saveToLocal();
+    saveToFirebase();
     const m = L.marker([lat, lng], {icon: createSvgIcon()}).addTo(map).bindPopup('Koordinat disimpan ke baris terpilih:<br>' + lat + ', ' + lng).openPopup();
     setTimeout(()=>{ map.removeLayer(m); }, 1800);
   });
@@ -590,6 +695,7 @@
   // Export / Template
   // -------------------------
   function exportExcel(){
+    if (userRole !== 'admin') return;
     const out = globalData.map(r => ({
       Nama: r.Nama||'', NoKK: r.NoKK||'', NoNIK: r.NoNIK||'', Alamat: r.Alamat||'', Kecamatan: r.Kecamatan||'', Desa: r.Desa||'',
       LuasRumah: r.LuasRumah||0, JumlahPenghuni: r.JumlahPenghuni||0, Latitude: r.Latitude||'', Longitude: r.Longitude||''
@@ -608,21 +714,15 @@
   });
 
   document.getElementById('clearData').addEventListener('click', ()=>{
-    if(!confirm('Kosongkan semua data yang sedang dimuat (tidak menghapus file asli)?')) return;
+    if (userRole !== 'admin') return;
+    if(!confirm('Kosongkan semua data yang sedang dimuat?')) return;
     globalData = [];
     applyFilters();
-    updateKPI();   // memastikan KPI tampil setelah load
     populateFilters();
     selectedGlobalIndex = null;
-    saveToLocal();
+    saveToFirebase();
   });
 
-  document.getElementById('clearStorage').addEventListener('click', ()=>{
-    if(confirm('Hapus auto-save dari browser?')){
-      localStorage.removeItem(LS_KEY);
-      alert('Auto-save dihapus. Reload halaman untuk memulai dari nol atau upload file Excel.');
-    }
-  });
 
   // -------------------------
   // KPI + animateNumber
@@ -652,92 +752,7 @@
   }
 
   // -------------------------
-  // Firebase integration
-  // -------------------------
-  const firebaseConfig = {
-    apiKey: "AIzaSyCSdubntMjMsOFIHNl-z9f6GTnBEJsz8qk",
-    authDomain: "rutilahu-ciamis.firebaseapp.com",
-    projectId: "rutilahu-ciamis",
-    storageBucket: "rutilahu-ciamis.appspot.com",
-    messagingSenderId: "785824428340",
-    appId: "1:785824428340:web:aec44a0b8307d7ed247561"
-  };
-
-  // Init firebase (compat)
-  try {
-    firebase.initializeApp(firebaseConfig);
-    var db = firebase.firestore();
-  } catch (err) {
-    console.warn("Firebase init error:", err);
-  }
-
-  async function saveToFirebase(){
-    if(typeof db === 'undefined') return Promise.reject('Firestore not initialized');
-    try {
-      const colRef = db.collection("rutilahu");
-      const snap = await colRef.get();
-      if(!snap.empty){
-        const batch = db.batch();
-        snap.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-      }
-      for (let r of globalData){
-        const doc = {
-          Nama: r.Nama||'',
-          NoKK: r.NoKK||'',
-          NoNIK: r.NoNIK||'',
-          Alamat: r.Alamat||'',
-          Kecamatan: r.Kecamatan||'',
-          Desa: r.Desa||'',
-          LuasRumah: (r.LuasRumah===null||r.LuasRumah===''? null : Number(r.LuasRumah)) || 0,
-          JumlahPenghuni: (r.JumlahPenghuni===null||r.JumlahPenghuni===''? null : Number(r.JumlahPenghuni)) || 0,
-          Latitude: (r.Latitude===null||r.Latitude===''? null : Number(r.Latitude)),
-          Longitude: (r.Longitude===null||r.Longitude===''? null : Number(r.Longitude))
-        };
-        await colRef.add(doc);
-      }
-      console.log("✅ Data tersimpan di Firebase");
-      return true;
-    } catch (e) {
-      console.error("Gagal simpan ke Firebase:", e);
-      return Promise.reject(e);
-    }
-  }
-
-  async function loadFromFirebase(){
-    if(typeof db === 'undefined') return Promise.reject('Firestore not initialized');
-    try {
-      const colRef = db.collection("rutilahu");
-      const snap = await colRef.get();
-      if(snap.empty){
-        return [];
-      }
-      const arr = snap.docs.map(d => {
-        const data = d.data();
-        return {
-          Nama: data.Nama||'',
-          NoKK: data.NoKK||'',
-          NoNIK: data.NoNIK||'',
-          Alamat: data.Alamat||'',
-          Kecamatan: data.Kecamatan||'',
-          Desa: data.Desa||'',
-          LuasRumah: safeFloat(data.LuasRumah) || 0,
-          JumlahPenghuni: parseInt(data.JumlahPenghuni)||0,
-          Latitude: safeFloat(data.Latitude),
-          Longitude: safeFloat(data.Longitude)
-        };
-      });
-      globalData = arr;
-      console.log("📥 Data dimuat dari Firebase:", globalData.length, "baris");
-      return globalData;
-    } catch (e) {
-      console.error("Gagal ambil data dari Firebase:", e);
-      return Promise.reject(e);
-    }
-  }
-
-  // -------------------------
-  // Init & applyFilters
+  // Init
   // -------------------------
   function applyFilters(){
     const k = document.getElementById('filterKecamatan').value;
@@ -763,28 +778,7 @@
     updateKPI();
   }
 
-  (async function initialLoad(){
-    try {
-      await loadFromFirebase();
-      populateFilters();
-      applyFilters();
-    updateKPI();   // memastikan KPI tampil setelah load
-    } catch (e) {
-      console.warn('Load from Firebase failed — falling back to localStorage if available.', e);
-      if(loadFromLocal()){
-        populateFilters();
-        applyFilters();
-    updateKPI();   // memastikan KPI tampil setelah load
-        console.log('Loaded data from auto-save (LocalStorage).');
-      } else {
-        applyFilters();
-    updateKPI();   // memastikan KPI tampil setelah load
-      }
-    }
-    selectedColor = localStorage.getItem(LS_COLOR) || selectedColor;
-    iconColorSel.value = selectedColor;
-    try{ document.getElementById('togglePerDesa').addEventListener('change', updateChart); }catch(e){}
-  })();
+  try{ document.getElementById('togglePerDesa').addEventListener('change', updateChart); }catch(e){}
 
   document.addEventListener('DOMContentLoaded', ()=>{
     const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","LuasRumah","JumlahPenghuni","Latitude","Longitude"];
@@ -796,10 +790,10 @@
       }
     });
 
-    const headers = document.querySelectorAll("#dataTable thead th.sortable");
     document.getElementById('resetSort').addEventListener('click', ()=>{
       localStorage.removeItem(LS_SORT);
       sortConfig = { key: 'Nama', asc: true };
+      const headers = document.querySelectorAll("#dataTable thead th.sortable");
       if(headers.length>0) sortByKey('Nama', headers[0]);
     });
 
@@ -811,11 +805,8 @@
     } else {
       sortConfig = { key: 'Nama', asc: true };
     }
-    applySavedSort();
-    sortFilteredViewIfNeeded();
-    setHeaderSortUI();
-    renderTable();
   });
-  </script>
+</script>
+
 </body>
 </html>
