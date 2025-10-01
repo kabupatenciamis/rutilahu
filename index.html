@@ -52,47 +52,46 @@
       z-index: 1050;
     }
     .dark-mode {
-      --bg: #1e1e1e;
-      --card-bg: #282828;
-      --text: #ffffff;
-      --muted: #b0b0b0;
-      --table-head-bg: #121212;
-      --table-head-text: #ffffff;
-      --main-purple: #4ade80;
-
-    }
-    .dark-mode h3, .dark-mode .card-title, .dark-mode .form-check-label {
-      color: var(--text) !important;
-    }
-    .dark-mode .kpi-card h5, .dark-mode .kpi-card p {
-      color: var(--text) !important;
-    }
-    .dark-mode .table-responsive {
-      color: var(--text);
-    }
-    .dark-mode .table-striped > tbody > tr:nth-of-type(odd) > * {
-      background-color: #383838;
-    }
-    .dark-mode .table-hover > tbody > tr:hover > * {
-      background-color: #444444;
-    }
-    .dark-mode .btn-outline-secondary {
-      color: var(--text);
-      border-color: var(--muted);
-    }
-    .dark-mode .form-control, .dark-mode .form-select {
-      background-color: #333333;
-      color: var(--text);
-      border-color: #555555;
-    }
-    .dark-mode .input-group-text {
-      background-color: #444444;
-      color: var(--text);
-      border-color: #555555;
-    }
-    .dark-mode .text-muted {
-      color: var(--muted) !important;
-    }
+  --bg: #121212;
+  --card-bg: #1e1e1e;
+  --text: #e4e4e7;
+  --muted: #a1a1aa;
+  --table-head-bg: #27272a;
+  --table-head-text: #ffffff;
+  --main-purple: #a78bfa;
+}
+.dark-mode h3, .dark-mode .card-title, .dark-mode .form-check-label {
+  color: var(--text) !important;
+}
+.dark-mode .kpi-card h5, .dark-mode .kpi-card p {
+  color: var(--text) !important;
+}
+.dark-mode .table-responsive {
+  color: var(--text);
+}
+.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > * {
+  background-color: #1e1e1e;
+}
+.dark-mode .table-hover > tbody > tr:hover > * {
+  background-color: #2a2a2a;
+}
+.dark-mode .btn-outline-secondary {
+  color: var(--text);
+  border-color: var(--muted);
+}
+.dark-mode .form-control, .dark-mode .form-select {
+  background-color: #1e1e1e;
+  color: var(--text);
+  border-color: #3f3f46;
+}
+.dark-mode .input-group-text {
+  background-color: #27272a;
+  color: var(--text);
+  border-color: #3f3f46;
+}
+.dark-mode .text-muted {
+  color: var(--muted) !important;
+}
   </style>
 </head>
 <body>
@@ -165,10 +164,10 @@
     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
       <div class="input-group" style="max-width:300px;">
         <span class="input-group-text">🔍</span>
-        <input type="text" class="form-control" placeholder="Cari Nama/NIK..." id="searchInput">
+        <input type="text" class="form-control" placeholder="Cari Nama/NIK..." id="searchInput" autocomplete="off">
       </div>
-      <select id="filterKecamatan" class="form-select" style="max-width:200px;"></select>
-      <select id="filterDesa" class="form-select" style="max-width:200px;"></select>
+      <select id="filterKecamatan" class="form-select" style="max-width:200px;" autocomplete="off"></select>
+      <select id="filterDesa" class="form-select" style="max-width:200px;" autocomplete="off"></select>
       
       <div class="btn-group" role="group">
         <button type="button" class="btn btn-outline-secondary" id="resetFilters">
@@ -470,9 +469,9 @@ function populateFilters(){
 }
 
   document.getElementById('filterKecamatan').addEventListener('change', () => {
-  populateFilters();
-  applyFilters();
-});
+      populateFilters();
+      applyFilters();
+    });
   document.getElementById('filterDesa').addEventListener('change', applyFilters);
   document.getElementById('searchInput').addEventListener('input', applyFilters);
   document.getElementById('pageSizeSel').value = pageSize;
