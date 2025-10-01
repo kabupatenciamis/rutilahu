@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
-    /* Palet Warna & Tema */
+    /* Palet Warna & Tema (dark mode removed) */
     :root{
       --bg: #f5f3ff;
       --card-bg: #ffffff;
@@ -51,47 +51,6 @@
       align-items: center;
       z-index: 1050;
     }
-    .dark-mode {
-  --bg: #121212;
-  --card-bg: #1e1e1e;
-  --text: #e4e4e7;
-  --muted: #a1a1aa;
-  --table-head-bg: #27272a;
-  --table-head-text: #ffffff;
-  --main-purple: #a78bfa;
-}
-.dark-mode h3, .dark-mode .card-title, .dark-mode .form-check-label {
-  color: var(--text) !important;
-}
-.dark-mode .kpi-card h5, .dark-mode .kpi-card p {
-  color: var(--text) !important;
-}
-.dark-mode .table-responsive {
-  color: var(--text);
-}
-.dark-mode .table-striped > tbody > tr:nth-of-type(odd) > * {
-  background-color: #1e1e1e;
-}
-.dark-mode .table-hover > tbody > tr:hover > * {
-  background-color: #2a2a2a;
-}
-.dark-mode .btn-outline-secondary {
-  color: var(--text);
-  border-color: var(--muted);
-}
-.dark-mode .form-control, .dark-mode .form-select {
-  background-color: #1e1e1e;
-  color: var(--text);
-  border-color: #3f3f46;
-}
-.dark-mode .input-group-text {
-  background-color: #27272a;
-  color: var(--text);
-  border-color: #3f3f46;
-}
-.dark-mode .text-muted {
-  color: var(--muted) !important;
-}
   </style>
 </head>
 <body>
@@ -99,11 +58,11 @@
 <div class="container-fluid p-4">
   <div class="d-flex align-items-center mb-4">
     <h3 class="me-auto" style="color:var(--main-purple);"><i class="fa-solid fa-house-chimney"></i> Dashboard SIRUCI <small class="text-muted">(Sistem Informasi Rutilahu Ciamis)</small></h3>
-    <span id="userRole" class="me-2 fw-bold"></span>
-    <button id="themeToggleBtn" class="btn btn-sm btn-outline-secondary">
-      <i class="fa-solid fa-moon"></i>
-    </button>
-    <a href="#" id="logoutBtn" class="btn btn-sm btn-outline-danger ms-2">
+    <div class="me-3 text-end">
+      <div style="font-size:0.95rem;color:var(--muted);">Masuk sebagai</div>
+      <div id="userRole" class="fw-bold" style="font-size:1rem;">-</div>
+    </div>
+    <a href="#" id="logoutBtn" class="btn btn-sm btn-outline-danger ms-2" style="display:none;">
       <i class="fa-solid fa-right-from-bracket"></i> Logout
     </a>
   </div>
@@ -237,10 +196,10 @@
   <div class="card p-4" style="width:100%;max-width:400px;text-align:center;">
     <h5 class="card-title mb-3">Login ke SIRUCI</h5>
     <div class="mb-3">
-      <input type="email" id="adminEmail" class="form-control" placeholder="Email Admin (hanya admin)" disabled>
+      <input type="email" id="adminEmail" name="admin_email" class="form-control" placeholder="Email Admin (hanya admin)" disabled autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
     </div>
     <div class="mb-3">
-      <input type="password" id="adminPassword" class="form-control" placeholder="Password Admin">
+      <input type="password" id="adminPassword" name="admin_password" class="form-control" placeholder="Password Admin" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false">
     </div>
     <div class="d-grid gap-2">
       <button class="btn btn-primary" id="loginAdminBtn">Login sebagai Admin</button>
@@ -260,8 +219,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
 <script>
-  const LS_THEME = 'rutilahu_theme_v1';
-  const LS_COLOR = 'rutilahu_icon_color_v1';
   const LS_SORT = 'rutilahu_sort_v1';
   const COLOR_MAP = {
     blue:  {fill:'#6b21a8', stroke:'#8b5cf6', strokeDark:'#f3e8ff'},
@@ -330,6 +287,8 @@
     if (userRole) {
       hideLoginOverlay();
     }
+
+    updateUserRoleIndicator();
   }
 
   auth.onAuthStateChanged(user => {
@@ -350,7 +309,19 @@
     }
   });
 
-  document.getElementById('loginAdminBtn').addEventListener('click', () => {
+  // Prevent clicks on the overlay (outside the card) from accidentally focusing the password (stops browser autofill inserting password into other inputs)
+document.getElementById('login-overlay').addEventListener('click', function(ev){
+  // if clicked outside the card, don't move focus
+  const card = this.querySelector('.card');
+  if(!card.contains(ev.target)){
+    ev.preventDefault();
+    ev.stopPropagation();
+    // blur any focused element to avoid autofill popups
+    if(document.activeElement) document.activeElement.blur();
+  }
+}, true);
+
+document.getElementById('loginAdminBtn').addEventListener('click', () => {
     const password = document.getElementById('adminPassword').value;
     const errorMsg = document.getElementById('loginErrorMsg');
     auth.signInWithEmailAndPassword(adminEmail, password)
@@ -645,10 +616,9 @@ function populateFilters(){
     let title = perDesa ? 'Jumlah Rutilahu per Desa' : 'Jumlah Rutilahu per Kecamatan';
     if(filterKec) title += ' — Kec: ' + filterKec;
     if(filterDesa) title += ', Desa: ' + filterDesa;
-    const isDark = document.body.classList.contains('dark-mode');
-    const textColor = isDark ? 'var(--text)' : 'var(--text)';
-    const mutedColor = isDark ? 'var(--muted)' : 'var(--muted)';
-    const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+    const textColor = 'var(--text)';
+    const mutedColor = 'var(--muted)';
+    const gridColor = 'rgba(0,0,0,0.05)';
 
     chart = new Chart(ctx, { 
       type: 'bar', 
@@ -687,19 +657,14 @@ function populateFilters(){
     });
   }
 
-  function getSvgIconDataUrl(colorKey, isDark){
+  function getSvgIconDataUrl(colorKey){
     const c = COLOR_MAP[colorKey] || COLOR_MAP.purple;
-    if(isDark){
-      return 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="${c.strokeDark}" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>`);
-    } else {
-      return 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="${c.fill}" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>`);
-    }
+    return 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="${c.fill}" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>`);
   }
 
   function createSvgIcon(){
-    const isDark = document.body.classList.contains('dark-mode');
     return L.icon({
-      iconUrl: getSvgIconDataUrl('purple', isDark),
+      iconUrl: getSvgIconDataUrl('purple'),
       iconSize: [36,36],
       iconAnchor: [18,36],
       popupAnchor: [0,-30]
@@ -839,13 +804,6 @@ function populateFilters(){
       }
     });
 
-    document.getElementById('resetSort').addEventListener('click', ()=>{
-      localStorage.removeItem(LS_SORT);
-      sortConfig = { key: 'Nama', asc: true };
-      const headers = document.querySelectorAll("#dataTable thead th.sortable");
-      if(headers.length>0) sortByKey('Nama', headers[0]);
-    });
-
     const saved = localStorage.getItem(LS_SORT);
     if(saved){
       try{
@@ -856,33 +814,9 @@ function populateFilters(){
     }
   });
 
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'dark') {
-    document.body.classList.add('dark-mode');
-  }
-
-  document.getElementById('themeToggleBtn').addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-    if (document.body.classList.contains('dark-mode')) {
-      localStorage.setItem('theme', 'dark');
-    } else {
-      localStorage.setItem('theme', 'light');
-    }
-    updateThemeButton();
-    updateChart();
-  });
-
-  function updateThemeButton() {
-    const button = document.getElementById('themeToggleBtn');
-    if (document.body.classList.contains('dark-mode')) {
-      button.innerHTML = '<i class="fa-solid fa-sun"></i>';
-    } else {
-      button.innerHTML = '<i class="fa-solid fa-moon"></i>';
-    }
-  }
-
   function updateUserRoleIndicator() {
     const userRoleElement = document.getElementById('userRole');
+    userRoleElement.classList.remove('text-success', 'text-muted');
     if (userRole === 'admin') {
       userRoleElement.textContent = 'Admin';
       userRoleElement.classList.add('text-success');
@@ -890,13 +824,10 @@ function populateFilters(){
       userRoleElement.textContent = 'Viewer';
       userRoleElement.classList.add('text-muted');
     } else {
-      userRoleElement.textContent = '';
-      userRoleElement.classList.remove('text-success', 'text-muted');
+      userRoleElement.textContent = '-';
     }
   }
 
-  document.addEventListener('DOMContentLoaded', updateThemeButton);
-  document.getElementById('themeToggleBtn').addEventListener('click', updateThemeButton);
   document.addEventListener('DOMContentLoaded', updateUserRoleIndicator);
 </script>
 
