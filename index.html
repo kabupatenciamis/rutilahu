@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SIRUCI — Dashboard </title>
+  <title>SIRUCI — Dashboard Rutilahu (Final)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -99,7 +99,7 @@
 
 <div class="container-fluid p-4">
   <div class="d-flex align-items-center mb-4">
-    <h3 class="me-auto" style="color:var(--main-purple);"><i class="fa-solid fa-house-chimney"></i> SIRUCI <small class="text-muted">(Sistem Informasi Rutilahu Kabupaten Ciamis)</small></h3>
+    <h3 class="me-auto" style="color:var(--main-purple);"><i class="fa-solid fa-house-chimney"></i> Dashboard SIRUCI <small class="text-muted">(Sistem Informasi Rutilahu Ciamis)</small></h3>
     <span id="userRole" class="me-2 fw-bold"></span>
     <button id="themeToggleBtn" class="btn btn-sm btn-outline-secondary">
       <i class="fa-solid fa-moon"></i>
@@ -439,18 +439,40 @@
     reader.readAsArrayBuffer(f);
   }
 
-  function populateFilters(){
-    const kecSet = new Set();
-    const desaSet = new Set();
-    globalData.forEach(d => { if(d.Kecamatan) kecSet.add(d.Kecamatan); if(d.Desa) desaSet.add(d.Desa); });
+  
+function populateFilters(){
     const kecSel = document.getElementById('filterKecamatan');
     const desaSel = document.getElementById('filterDesa');
+
+    // simpan pilihan sebelumnya
+    const selectedKec = kecSel.value;
+    const selectedDesa = desaSel.value;
+
+    // isi kecamatan
+    const kecSet = new Set(globalData.map(d => d.Kecamatan).filter(Boolean));
     kecSel.innerHTML = '<option value="">Semua</option>';
+    Array.from(kecSet).sort().forEach(k=> {
+      kecSel.innerHTML += `<option value="${k}" ${k===selectedKec?'selected':''}>${k}</option>`;
+    });
+
+    // isi desa tergantung kecamatan yang dipilih
+    let desaSet = new Set();
+    globalData.forEach(d => {
+      if(!selectedKec || d.Kecamatan === selectedKec){
+        if(d.Desa) desaSet.add(d.Desa);
+      }
+    });
+
     desaSel.innerHTML = '<option value="">Semua</option>';
-    Array.from(kecSet).sort().forEach(k=> kecSel.innerHTML += `<option value="${k}">${k}</option>`);
-    Array.from(desaSet).sort().forEach(d=> desaSel.innerHTML += `<option value="${d}">${d}</option>`);
-  }
-  document.getElementById('filterKecamatan').addEventListener('change', applyFilters);
+    Array.from(desaSet).sort().forEach(d=> {
+      desaSel.innerHTML += `<option value="${d}" ${d===selectedDesa?'selected':''}>${d}</option>`;
+    });
+}
+
+  document.getElementById('filterKecamatan').addEventListener('change', () => {
+  populateFilters();
+  applyFilters();
+});
   document.getElementById('filterDesa').addEventListener('change', applyFilters);
   document.getElementById('searchInput').addEventListener('input', applyFilters);
   document.getElementById('pageSizeSel').value = pageSize;
