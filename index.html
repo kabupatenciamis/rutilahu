@@ -691,7 +691,7 @@ function populateFilters(){
             <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-user" style="color: var(--main-purple);"></i> Nama:</b> ${escapeHtml(r.Nama)}</p>
             <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-id-card" style="color: var(--muted);"></i> No. NIK:</b> ${escapeHtml(r.NoNIK)}</p>
             <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-location-dot" style="color: var(--muted);"></i> Alamat:</b> ${escapeHtml(r.Alamat)}</p>
-            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-map-pin" style="color: var(--muted);"></i> Lokasi:</b> Kec. ${escapeHtml(r.Desa)} | Desa ${escapeHtml(r.Kecamatan)}</p>
+            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-map-pin" style="color: var(--muted);"></i> Lokasi:</b> Desa ${escapeHtml(r.Desa)} | Kecamatan ${escapeHtml(r.Kecamatan)}</p>
           </div>
         `);
         markersLayer.addLayer(m);
