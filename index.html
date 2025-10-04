@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -111,7 +112,7 @@
         <div class="d-flex align-items-center mb-2">
           <div class="form-check form-switch ms-auto">
             <input class="form-check-input" type="checkbox" role="switch" id="togglePerDesa" checked>
-            <label class="form-check-label" for="togglePerDesa">Tampilkan per Desa</label>
+            <label class="form-check-label" for="togglePerDesa">Tampilkan per Desa / Kelurahan</label>
           </div>
         </div>
         <div style="height: calc(100% - 40px);"><canvas id="chartCanvas"></canvas></div>
@@ -120,7 +121,7 @@
   </div>
 
   <div class="card p-3">
-    <h5 class="card-title">Tabel Rutilahu</h5>
+    <h5 class="card-title">Tabel Data</h5>
     <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
       <div class="input-group" style="max-width:300px;">
         <span class="input-group-text">🔍</span>
@@ -128,7 +129,7 @@
       </div>
       <select id="filterKecamatan" class="form-select" style="max-width:200px;" autocomplete="off"></select>
       <select id="filterDesa" class="form-select" style="max-width:200px;" autocomplete="off"></select>
-      
+
       <div class="btn-group" role="group">
         <button type="button" class="btn btn-outline-secondary" id="resetFilters">
           <i class="fa-solid fa-filter-circle-xmark"></i> Reset Filter
@@ -137,7 +138,7 @@
           <i class="fa-solid fa-sort"></i> Reset Urutan
         </button>
       </div>
-      
+
       <div class="ms-auto btn-group" role="group">
         <label for="fileInput" class="btn btn-outline-secondary">
           <i class="fa-solid fa-file-excel"></i> <span>Unggah XLSX</span>
@@ -166,9 +167,10 @@
             <th class="sortable">No. NIK</th>
             <th class="sortable">Alamat</th>
             <th class="sortable">Kecamatan</th>
-            <th class="sortable">Desa</th>
+            <th class="sortable">Desa / Kelurahan</th>
             <th class="sortable">Luas Rumah</th>
             <th class="sortable">Jml Penghuni</th>
+            <th class="sortable">Kecukupan Ruang</th>
             <th class="sortable">Latitude</th>
             <th class="sortable">Longitude</th>
             <th>Aksi</th>
@@ -214,7 +216,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
+
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -253,7 +255,7 @@
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.database();
-  
+
   const adminEmail = 'admin@ciamis.go.id';
   let userRole = null;
 
@@ -269,15 +271,15 @@
 
   function applyUserRole(){
     const isAdmin = userRole === 'admin';
-    
+
     document.getElementById('fileInput').disabled = !isAdmin;
     document.getElementById('downloadTemplate').disabled = !isAdmin;
     const addRowBtn = document.querySelector('button[onclick="addRow()"]');
     if (addRowBtn) addRowBtn.disabled = !isAdmin;
     const exportExcelBtn = document.querySelector('button[onclick="exportExcel()"]');
-    if (exportExcelBtn) exportExcelBtn.disabled = !isAdmin;
+    if (exportExcelBtn) exportExcelBtn.disabled = false;
     document.getElementById('clearData').disabled = !isAdmin;
-    
+
     document.querySelectorAll('#dataTable tbody td[contenteditable]').forEach(el => el.setAttribute('contenteditable', isAdmin));
     document.querySelectorAll('.btn-danger, .btn-success').forEach(el => el.style.display = isAdmin ? '' : 'none');
     const tableHint = document.querySelector('.ms-auto.text-muted');
@@ -349,7 +351,7 @@ document.getElementById('loginAdminBtn').addEventListener('click', () => {
       console.error("Logout error:", error);
     });
   });
-  
+
   function safeFloat(v){ let n = parseFloat(v); return isNaN(n)? null : n; }
   function escapeHtml(s){ if(s==null) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
 
@@ -366,8 +368,10 @@ document.getElementById('loginAdminBtn').addEventListener('click', () => {
       const data = snapshot.val();
       if (Array.isArray(data)) {
         globalData = data.map(r=>({
-          Nama: r.Nama||'', NoKK: r.NoKK||'', NoNIK: r.NoNIK||'', Alamat: r.Alamat||'', Kecamatan: r.Kecamatan||'', Desa: r.Desa||'',
+          Nama: r.Nama||'', NoKK: r.NoKK||'', NoNIK: r.NoNIK||'', Alamat: r.Alamat||'', Kecamatan: r.Kecamatan||'', 
+          Desa: r.Desa||'', Kelurahan: r.Kelurahan||'', // Kelurahan baru (bisa kosong)
           LuasRumah: safeFloat(r.LuasRumah) || 0, JumlahPenghuni: parseInt(r.JumlahPenghuni)||0,
+          KecukupanRuang: r.KecukupanRuang || '', // 'Cukup' atau 'Tidak'
           Latitude: safeFloat(r.Latitude), Longitude: safeFloat(r.Longitude)
         }));
       } else {
@@ -397,9 +401,12 @@ document.getElementById('loginAdminBtn').addEventListener('click', () => {
         NoNIK: r.NoNIK || r.No_NIK || r['No NIK'] || '',
         Alamat: r.Alamat || r.alamat || '',
         Kecamatan: r.Kecamatan || r.kecamatan || '',
-        Desa: r.Desa || r.desa || '',
+        // Accept both 'Desa' and 'Kelurahan' columns from various templates
+        Desa: r.Desa || r.desa || r['Desa'] || '',
+        Kelurahan: r.Kelurahan || r.kelurahan || r['Kelurahan'] || '',
         LuasRumah: safeFloat(r.LuasRumah || r['Luas Rumah'] || r.luas) || 0,
         JumlahPenghuni: parseInt(r.JumlahPenghuni || r['Jumlah Penghuni'] || r.jumlah) || 0,
+        KecukupanRuang: (r.KecukupanRuang || r['KecukupanRuang'] || r.Kecukupan || r['Kecukupan Ruang'] || '').toString(),
         Latitude: safeFloat(r.Latitude || r.Lat || r.lat) ,
         Longitude: safeFloat(r.Longitude || r.Lng || r.lng)
       }));
@@ -410,7 +417,7 @@ document.getElementById('loginAdminBtn').addEventListener('click', () => {
     reader.readAsArrayBuffer(f);
   }
 
-  
+
 function populateFilters(){
     const kecSel = document.getElementById('filterKecamatan');
     const desaSel = document.getElementById('filterDesa');
@@ -421,22 +428,23 @@ function populateFilters(){
 
     // isi kecamatan
     const kecSet = new Set(globalData.map(d => d.Kecamatan).filter(Boolean));
-    kecSel.innerHTML = '<option value="">Semua</option>';
+    kecSel.innerHTML = '<option value=\"\">Semua</option>';
     Array.from(kecSet).sort().forEach(k=> {
-      kecSel.innerHTML += `<option value="${k}" ${k===selectedKec?'selected':''}>${k}</option>`;
+      kecSel.innerHTML += `<option value=\"${k}\" ${k===selectedKec?'selected':''}>${k}</option>`;
     });
 
-    // isi desa tergantung kecamatan yang dipilih
+    // isi desa/kelurahan tergantung kecamatan yang dipilih
     let desaSet = new Set();
     globalData.forEach(d => {
       if(!selectedKec || d.Kecamatan === selectedKec){
         if(d.Desa) desaSet.add(d.Desa);
+        if(d.Kelurahan) desaSet.add(d.Kelurahan);
       }
     });
 
-    desaSel.innerHTML = '<option value="">Semua</option>';
+    desaSel.innerHTML = '<option value=\"\">Semua Desa / Kelurahan</option>';
     Array.from(desaSet).sort().forEach(d=> {
-      desaSel.innerHTML += `<option value="${d}" ${d===selectedDesa?'selected':''}>${d}</option>`;
+      desaSel.innerHTML += `<option value=\"${d}\" ${d===selectedDesa?'selected':''}>${d}</option>`;
     });
 }
 
@@ -476,7 +484,7 @@ function populateFilters(){
   }
   function setHeaderSortUI(){
     document.querySelectorAll("#dataTable thead th.sortable").forEach(thEl => thEl.classList.remove("asc","desc"));
-    const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","LuasRumah","JumlahPenghuni","Latitude","Longitude"];
+    const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","LuasRumah","JumlahPenghuni","KecukupanRuang","Latitude","Longitude"];
     const idx = keyMap.indexOf(sortConfig.key);
     if(idx >= 0){
       const ths = document.querySelectorAll("#dataTable thead th.sortable");
@@ -512,9 +520,10 @@ function populateFilters(){
         <td contenteditable="${isAdmin}">${escapeHtml(r.NoNIK)}</td>
         <td contenteditable="${isAdmin}">${escapeHtml(r.Alamat)}</td>
         <td contenteditable="${isAdmin}">${escapeHtml(r.Kecamatan)}</td>
-        <td contenteditable="${isAdmin}">${escapeHtml(r.Desa)}</td>
+        <td contenteditable="${isAdmin}">${escapeHtml(r.Desa || r.Kelurahan)}</td>
         <td contenteditable="${isAdmin}">${r.LuasRumah ?? ''}</td>
         <td contenteditable="${isAdmin}">${r.JumlahPenghuni ?? ''}</td>
+        <td contenteditable="${isAdmin}">${escapeHtml(r.KecukupanRuang ?? '')}</td>
         <td contenteditable="${isAdmin}">${r.Latitude ?? ''}</td>
         <td contenteditable="${isAdmin}">${r.Longitude ?? ''}</td>
         <td>
@@ -558,7 +567,7 @@ function populateFilters(){
 
   function addRow(){
     if (userRole !== 'admin') return;
-    const newObj = { Nama: '', NoKK: '', NoNIK: '', Alamat:'', Kecamatan:'', Desa:'', LuasRumah:0, JumlahPenghuni:0, Latitude:null, Longitude:null };
+    const newObj = { Nama: '', NoKK: '', NoNIK: '', Alamat:'', Kecamatan:'', Desa:'', Kelurahan:'', LuasRumah:0, JumlahPenghuni:0, KecukupanRuang:'', Latitude:null, Longitude:null };
     globalData.push(newObj);
     populateFilters();
     applyFilters();
@@ -575,18 +584,23 @@ function populateFilters(){
     const tr = btn.closest('tr');
     const idx = parseInt(tr.dataset.idx);
     const cells = tr.querySelectorAll('td');
+    // note: cells mapping corresponds to renderTable order
     globalData[idx] = {
       Nama: cells[0].innerText.trim(),
       NoKK: cells[1].innerText.trim(),
       NoNIK: cells[2].innerText.trim(),
       Alamat: cells[3].innerText.trim(),
       Kecamatan: cells[4].innerText.trim(),
+      // Attempt to preserve Desa first, if empty save into Kelurahan field
       Desa: cells[5].innerText.trim(),
+      Kelurahan: '', // keep Kelurahan empty if not separately provided
       LuasRumah: safeFloat(cells[6].innerText) || 0,
       JumlahPenghuni: parseInt(cells[7].innerText) || 0,
-      Latitude: safeFloat(cells[8].innerText),
-      Longitude: safeFloat(cells[9].innerText)
+      KecukupanRuang: cells[8].innerText.trim() || '',
+      Latitude: safeFloat(cells[9].innerText),
+      Longitude: safeFloat(cells[10].innerText)
     };
+    // if Desa field matches a known Kelurahan value pattern? We'll keep Desa populated and Kelurahan blank.
     populateFilters();
     applyFilters();
     saveToFirebase();
@@ -607,16 +621,19 @@ function populateFilters(){
   function updateChart(){
     const perDesa = document.getElementById('togglePerDesa')?.checked;
     const grouped = {};
-    filteredView.forEach(r => { const key = perDesa ? (r.Desa||'(Belum diisi)') : (r.Kecamatan||'(Belum diisi)'); grouped[key] = (grouped[key]||0)+1; });
+    filteredView.forEach(r => { 
+      const key = perDesa ? (r.Desa || r.Kelurahan || '(Belum diisi)') : (r.Kecamatan||'(Belum diisi)'); 
+      grouped[key] = (grouped[key]||0)+1; 
+    });
     const labels = Object.keys(grouped);
     const values = Object.values(grouped);
     if(chart) chart.destroy();
     const ctx = document.getElementById('chartCanvas').getContext('2d');
     const filterKec = document.getElementById('filterKecamatan').value;
     const filterDesa = document.getElementById('filterDesa').value;
-    let title = perDesa ? 'Jumlah Rutilahu per Desa' : 'Jumlah Rutilahu per Kecamatan';
+    let title = perDesa ? 'Jumlah Rutilahu per Desa / Kelurahan' : 'Jumlah Rutilahu per Kecamatan';
     if(filterKec) title += ' — Kec: ' + filterKec;
-    if(filterDesa) title += ', Desa: ' + filterDesa;
+    if(filterDesa) title += ', Desa/Kel: ' + filterDesa;
     const textColor = 'var(--text)';
     const mutedColor = 'var(--muted)';
     const gridColor = 'rgba(0,0,0,0.05)';
@@ -691,7 +708,7 @@ function populateFilters(){
             <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-user" style="color: var(--main-purple);"></i> Nama:</b> ${escapeHtml(r.Nama)}</p>
             <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-id-card" style="color: var(--muted);"></i> No. NIK:</b> ${escapeHtml(r.NoNIK)}</p>
             <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-location-dot" style="color: var(--muted);"></i> Alamat:</b> ${escapeHtml(r.Alamat)}</p>
-            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-map-pin" style="color: var(--muted);"></i> Lokasi:</b> Desa ${escapeHtml(r.Desa)} | Kecamatan ${escapeHtml(r.Kecamatan)}</p>
+            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-map-pin" style="color: var(--muted);"></i> Lokasi:</b> Kec. ${escapeHtml(r.Kecamatan)} | Desa/Kel. ${escapeHtml(r.Desa || r.Kelurahan)}</p>
           </div>
         `);
         markersLayer.addLayer(m);
@@ -717,10 +734,9 @@ function populateFilters(){
   });
 
   function exportExcel(){
-    if (userRole !== 'admin') return;
     const out = globalData.map(r => ({
-      Nama: r.Nama||'', NoKK: r.NoKK||'', NoNIK: r.NoNIK||'', Alamat: r.Alamat||'', Kecamatan: r.Kecamatan||'', Desa: r.Desa||'',
-      LuasRumah: r.LuasRumah||0, JumlahPenghuni: r.JumlahPenghuni||0, Latitude: r.Latitude||'', Longitude: r.Longitude||''
+      Nama: r.Nama||'', NoKK: r.NoKK||'', NoNIK: r.NoNIK||'', Alamat: r.Alamat||'', Kecamatan: r.Kecamatan||'', Desa: r.Desa||'', Kelurahan: r.Kelurahan||'',
+      LuasRumah: r.LuasRumah||0, JumlahPenghuni: r.JumlahPenghuni||0, KecukupanRuang: r.KecukupanRuang||'', Latitude: r.Latitude||'', Longitude: r.Longitude||''
     }));
     const ws = XLSX.utils.json_to_sheet(out);
     const wb = XLSX.utils.book_new();
@@ -729,8 +745,8 @@ function populateFilters(){
   }
 
   document.getElementById('downloadTemplate').addEventListener('click', ()=>{
-    const headers = [{Nama:'Nama contoh',NoKK:'3201...',NoNIK:'3510...',Alamat:'Jl. Contoh',Kecamatan:'Contoh Kec',Desa:'Contoh Desa',LuasRumah:36,JumlahPenghuni:4,Latitude:-7.333333,Longitude:108.333333}];
-    const ws = XLSX.utils.json_to_sheet(headers, {header: ['Nama','NoKK','NoNIK','Alamat','Kecamatan','Desa','LuasRumah','JumlahPenghuni','Latitude','Longitude']});
+    const headers = [{Nama:'Nama contoh',NoKK:'3201...',NoNIK:'3510...',Alamat:'Jl. Contoh',Kecamatan:'Contoh Kec',Desa:'Contoh Desa',Kelurahan:'',LuasRumah:36,JumlahPenghuni:4,KecukupanRuang:'Cukup',Latitude:-7.333333,Longitude:108.333333}];
+    const ws = XLSX.utils.json_to_sheet(headers, {header: ['Nama','NoKK','NoNIK','Alamat','Kecamatan','Desa','Kelurahan','LuasRumah','JumlahPenghuni','KecukupanRuang','Latitude','Longitude']});
     const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Template');
     XLSX.writeFile(wb, 'Template_Rutilahu_Ciamis.xlsx');
   });
@@ -763,7 +779,8 @@ function populateFilters(){
     animateNumber(document.getElementById('totalData'), dataToAnalyze.length);
     const kecSet = new Set(dataToAnalyze.map(d=>d.Kecamatan).filter(Boolean));
     animateNumber(document.getElementById('totalKecamatan'), kecSet.size);
-    const desaSet = new Set(dataToAnalyze.map(d=>d.Desa).filter(Boolean));
+    // count unique Desa/Kelurahan values
+    const desaSet = new Set(dataToAnalyze.map(d=> d.Desa || d.Kelurahan).filter(Boolean));
     animateNumber(document.getElementById('totalDesa'), desaSet.size);
     const totalPenghuni = dataToAnalyze.reduce((sum,d)=> sum+(parseInt(d.JumlahPenghuni)||0),0);
     animateNumber(document.getElementById('totalPenghuni'), totalPenghuni);
@@ -776,7 +793,7 @@ function populateFilters(){
     filteredView = [];
     globalData.forEach((row, idx) => {
       if(k && row.Kecamatan !== k) return;
-      if(d && row.Desa !== d) return;
+      if(d && (row.Desa !== d && row.Kelurahan !== d)) return;
       if(s){
         const hay = ((row.Nama||'') + ' ' + (row.NoNIK||'')).toLowerCase();
         if(!hay.includes(s)) return;
@@ -796,7 +813,7 @@ function populateFilters(){
   try{ document.getElementById('togglePerDesa').addEventListener('change', updateChart); }catch(e){}
 
   document.addEventListener('DOMContentLoaded', ()=>{
-    const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","LuasRumah","JumlahPenghuni","Latitude","Longitude"];
+    const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","LuasRumah","JumlahPenghuni","KecukupanRuang","Latitude","Longitude"];
     document.querySelectorAll("#dataTable thead th.sortable").forEach((th, idx) => {
       if (idx < keyMap.length) {
         th.style.cursor = "pointer";
