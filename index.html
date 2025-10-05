@@ -29,6 +29,7 @@
     #map { height: 50vh; min-height: 400px; border-radius: 12px; z-index: 1; }
     .kpi-card { text-align: center; font-weight: 500; transition: transform 0.3s ease; }
     .kpi-card:hover { transform: translateY(-5px); }
+    .kpi-card h5 {min-height: 2.5rem; }
     .kpi-card h5 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--muted); }
     .kpi-card p { font-size: 2.2rem; font-weight: 700; margin-bottom: 0; transition: color 0.3s ease; }
     .kpi-blue { background: var(--kpi-blue); color: #3b82f6; }
@@ -70,31 +71,43 @@
 <div class="w-100 text-align fw-bold mb-4" style="color:var(--main-purple); font-size:1.1rem;">Data Tepat, Bantuan Cepat, Ciamis Hebat</div>
 
   <div class="row g-4 mb-4">
-    <div class="col-md-3">
-      <div class="card p-3 kpi-card kpi-blue">
-        <h5>Total Rutilahu</h5>
-        <p id="totalData">0</p>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card p-3 kpi-card kpi-green">
-        <h5>Kecamatan</h5>
-        <p id="totalKecamatan">0</p>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card p-3 kpi-card kpi-orange">
-        <h5>Desa / Kelurahan</h5>
-        <p id="totalDesa">0</p>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card p-3 kpi-card kpi-purple">
-        <h5>Total Penghuni</h5>
-        <p id="totalPenghuni">0</p>
-      </div>
+  <div class="col-md-2">
+    <div class="card p-3 kpi-card kpi-blue">
+      <h5>Total Rutilahu</h5>
+      <p id="totalData">0</p>
     </div>
   </div>
+  <div class="col-md-2">
+    <div class="card p-3 kpi-card kpi-green">
+      <h5>Kecamatan</h5>
+      <p id="totalKecamatan">0</p>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card p-3 kpi-card kpi-orange">
+      <h5>Desa / Kelurahan</h5>
+      <p id="totalDesa">0</p>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card p-3 kpi-card kpi-purple">
+      <h5>Total Penghuni</h5>
+      <p id="totalPenghuni">0</p>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card p-3 kpi-card kpi-green">
+      <h5>Kecukupan Ruang (CUKUP)</h5>
+      <p id="totalCukup">0</p>
+    </div>
+  </div>
+  <div class="col-md-2">
+    <div class="card p-3 kpi-card kpi-orange">
+      <h5>Kecukupan Ruang (TIDAK)</h5>
+      <p id="totalTidak">0</p>
+    </div>
+  </div>
+</div>
 
   <div class="row g-4 mb-4">
     <div class="col-md-6">
@@ -224,12 +237,12 @@
 <script>
   const LS_SORT = 'rutilahu_sort_v1';
   const COLOR_MAP = {
-    blue:  {fill:'#6b21a8', stroke:'#8b5cf6', strokeDark:'#f3e8ff'},
-    green: {fill:'#22c55e', stroke:'#16a34a', strokeDark:'#86efac'},
-    red:   {fill:'#ef4444', stroke:'#b91c1c', strokeDark:'#fca5a5'},
-    orange:{fill:'#f97316', stroke:'#c2410c', strokeDark:'#fdba74'},
-    purple:{fill:'#6b21a8', stroke:'#8b5cf6', strokeDark:'#f3e8ff'}
-  };
+  blue:  {fill:'#6b21a8', stroke:'#8b5cf6', strokeDark:'#f3e8ff'},
+  green: {fill:'#22c55e', stroke:'#16a34a', strokeDark:'#86efac'},
+  red:   {fill:'#ef4444', stroke:'#b91c1c', strokeDark:'#fca5a5'}, // Tambahkan ini
+  orange:{fill:'#f97316', stroke:'#c2410c', strokeDark:'#fdba74'},
+  purple:{fill:'#6b21a8', stroke:'#8b5cf6', strokeDark:'#f3e8ff'}
+};
 
   let globalData = [];
   let filteredView = [];
@@ -680,14 +693,15 @@ function populateFilters(){
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="${c.fill}" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>`);
   }
 
-  function createSvgIcon(){
-    return L.icon({
-      iconUrl: getSvgIconDataUrl('purple'),
-      iconSize: [36,36],
-      iconAnchor: [18,36],
-      popupAnchor: [0,-30]
-    });
-  }
+  function createSvgIcon(colorKey){
+  const c = COLOR_MAP[colorKey] || COLOR_MAP.purple;
+  return L.icon({
+    iconUrl: 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="${c.fill}" d="M10 20v-6h4v6h5v-8h3L12 3L2 12h3v8h5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>`),
+    iconSize: [36,36],
+    iconAnchor: [18,36],
+    popupAnchor: [0,-30]
+  });
+}
 
   function bounceMarker(marker){
     const icon = marker._icon;
@@ -698,24 +712,34 @@ function populateFilters(){
   }
 
   function updateMap(){
-    if(!markersLayer) return;
-    markersLayer.clearLayers();
-    const icon = createSvgIcon();
-    filteredView.forEach(r => {
-      if(r.Latitude != null && r.Longitude != null){
-        const m = L.marker([r.Latitude, r.Longitude], {icon}).bindPopup(`
-          <div style="font-size: 1rem; line-height: 1.5;">
-            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-user" style="color: var(--main-purple);"></i> Nama:</b> ${escapeHtml(r.Nama)}</p>
-            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-id-card" style="color: var(--muted);"></i> No. NIK:</b> ${escapeHtml(r.NoNIK)}</p>
-            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-location-dot" style="color: var(--muted);"></i> Alamat:</b> ${escapeHtml(r.Alamat)}</p>
-            <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-map-pin" style="color: var(--muted);"></i> Lokasi:</b> Kec. ${escapeHtml(r.Kecamatan)} | Desa/Kel. ${escapeHtml(r.Desa || r.Kelurahan)}</p>
-          </div>
-        `);
-        markersLayer.addLayer(m);
-        m.on('add', ()=> bounceMarker(m));
+  if(!markersLayer) return;
+  markersLayer.clearLayers();
+  
+  filteredView.forEach(r => {
+    if(r.Latitude != null && r.Longitude != null){
+      const kecukupan = r.KecukupanRuang.toLowerCase();
+      let colorKey = 'purple'; // Default color
+      if(kecukupan.includes('cukup')) {
+        colorKey = 'green';
+      } else if (kecukupan.includes('tidak')) {
+        colorKey = 'red';
       }
-    });
-  }
+      
+      const icon = createSvgIcon(colorKey);
+      const m = L.marker([r.Latitude, r.Longitude], {icon}).bindPopup(`
+        <div style="font-size: 1rem; line-height: 1.5;">
+          <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-user" style="color: var(--main-purple);"></i> Nama:</b> ${escapeHtml(r.Nama)}</p>
+          <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-id-card" style="color: var(--muted);"></i> No. NIK:</b> ${escapeHtml(r.NoNIK)}</p>
+          <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-location-dot" style="color: var(--muted);"></i> Alamat:</b> ${escapeHtml(r.Alamat)}</p>
+          <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-map-pin" style="color: var(--muted);"></i> Lokasi:</b> Kec. ${escapeHtml(r.Kecamatan)} | Desa/Kel. ${escapeHtml(r.Desa || r.Kelurahan)}</p>
+          <p style="margin: 0; padding: 0;"><b><i class="fa-solid fa-house-user" style="color: var(--muted);"></i> Kecukupan Ruang:</b> ${escapeHtml(r.KecukupanRuang)}</p> | ( ${escapeHtml(r.LuasRumah)} M2 / ${escapeHtml(r.JumlahPenghuni)} orang )</p>
+        </div>
+      `);
+      markersLayer.addLayer(m);
+      m.on('add', ()=> bounceMarker(m));
+    }
+  });
+}
 
   map.on('click', function(e){
     if (userRole !== 'admin') {
@@ -776,15 +800,20 @@ function populateFilters(){
   }
 
   function updateKPI(dataToAnalyze = globalData){
-    animateNumber(document.getElementById('totalData'), dataToAnalyze.length);
-    const kecSet = new Set(dataToAnalyze.map(d=>d.Kecamatan).filter(Boolean));
-    animateNumber(document.getElementById('totalKecamatan'), kecSet.size);
-    // count unique Desa/Kelurahan values
-    const desaSet = new Set(dataToAnalyze.map(d=> d.Desa || d.Kelurahan).filter(Boolean));
-    animateNumber(document.getElementById('totalDesa'), desaSet.size);
-    const totalPenghuni = dataToAnalyze.reduce((sum,d)=> sum+(parseInt(d.JumlahPenghuni)||0),0);
-    animateNumber(document.getElementById('totalPenghuni'), totalPenghuni);
-  }
+  animateNumber(document.getElementById('totalData'), dataToAnalyze.length);
+  const kecSet = new Set(dataToAnalyze.map(d=>d.Kecamatan).filter(Boolean));
+  animateNumber(document.getElementById('totalKecamatan'), kecSet.size);
+  const desaSet = new Set(dataToAnalyze.map(d=> d.Desa || d.Kelurahan).filter(Boolean));
+  animateNumber(document.getElementById('totalDesa'), desaSet.size);
+  const totalPenghuni = dataToAnalyze.reduce((sum,d)=> sum+(parseInt(d.JumlahPenghuni)||0),0);
+  animateNumber(document.getElementById('totalPenghuni'), totalPenghuni);
+  
+  // Hitung KPI baru
+  const totalCukup = dataToAnalyze.filter(d => d.KecukupanRuang && d.KecukupanRuang.toLowerCase().includes('cukup')).length;
+  const totalTidak = dataToAnalyze.filter(d => d.KecukupanRuang && d.KecukupanRuang.toLowerCase().includes('tidak')).length;
+  animateNumber(document.getElementById('totalCukup'), totalCukup);
+  animateNumber(document.getElementById('totalTidak'), totalTidak);
+}
 
   function applyFilters(){
     const k = document.getElementById('filterKecamatan').value;
