@@ -103,7 +103,7 @@
   </div>
   <div class="col-md-2">
     <div class="card p-3 kpi-card kpi-orange">
-      <h5>Kecukupan Ruang (TIDAK CUKUP)</h5>
+      <h5>Kecukupan Ruang (TIDAK)</h5>
       <p id="totalTidak">0</p>
     </div>
   </div>
@@ -721,7 +721,7 @@ function populateFilters(){
       let colorKey = 'purple'; // Default color
       if(kecukupan.includes('cukup')) {
         colorKey = 'green';
-      } else if (kecukupan.includes('tidak cukup')) {
+      } else if (kecukupan.includes('tidak')) {
         colorKey = 'red';
       }
       
