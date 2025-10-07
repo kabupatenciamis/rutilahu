@@ -803,8 +803,12 @@ function populateFilters(){
   animateNumber(document.getElementById('totalData'), dataToAnalyze.length);
   const kecSet = new Set(dataToAnalyze.map(d=>d.Kecamatan).filter(Boolean));
   animateNumber(document.getElementById('totalKecamatan'), kecSet.size);
-  const desaSet = new Set(dataToAnalyze.map(d=> d.Desa || d.Kelurahan).filter(Boolean));
-  animateNumber(document.getElementById('totalDesa'), desaSet.size);
+  const desaSet = new Set(
+  dataToAnalyze
+    .map(d => (d.Desa || d.Kelurahan || '').trim().toLowerCase())
+    .filter(v => v && v !== '-')
+);
+animateNumber(document.getElementById('totalDesa'), desaSet.size);
   const totalPenghuni = dataToAnalyze.reduce((sum,d)=> sum+(parseInt(d.JumlahPenghuni)||0),0);
   animateNumber(document.getElementById('totalPenghuni'), totalPenghuni);
   
