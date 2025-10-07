@@ -310,15 +310,358 @@ table#dataTable tbody tr:hover {
 </div>
 
 <!-- libs -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js">
+// 🔄 Isi otomatis dropdown filter dari data Firebase
+function fillFilterOptions() {
+  const kecSelect = document.getElementById('filterKecamatan');
+  const desaSelect = document.getElementById('filterDesa');
+  const statusSelect = document.getElementById('filterStatus');
+
+  // Kosongkan semua opsi lama dulu
+  [kecSelect, desaSelect, statusSelect].forEach(sel => {
+    sel.innerHTML = '<option value="">Semua</option>';
+  });
+
+  // Buat set unik dari data
+  const kecamatanSet = new Set();
+  const desaKelSet = new Set();
+  const statusSet = new Set();
+
+  globalData.forEach(r => {
+    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
+    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
+    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
+  });
+
+  // Masukkan data ke dropdown
+  Array.from(kecamatanSet).sort().forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    kecSelect.appendChild(opt);
+  });
+
+  Array.from(desaKelSet).sort().forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    desaSelect.appendChild(opt);
+  });
+
+  Array.from(statusSet).sort().forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    statusSelect.appendChild(opt);
+  });
+}
+
+// Jalankan setelah data Firebase selesai dimuat
+setTimeout(fillFilterOptions, 1500);
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js">
+// 🔄 Isi otomatis dropdown filter dari data Firebase
+function fillFilterOptions() {
+  const kecSelect = document.getElementById('filterKecamatan');
+  const desaSelect = document.getElementById('filterDesa');
+  const statusSelect = document.getElementById('filterStatus');
+
+  // Kosongkan semua opsi lama dulu
+  [kecSelect, desaSelect, statusSelect].forEach(sel => {
+    sel.innerHTML = '<option value="">Semua</option>';
+  });
+
+  // Buat set unik dari data
+  const kecamatanSet = new Set();
+  const desaKelSet = new Set();
+  const statusSet = new Set();
+
+  globalData.forEach(r => {
+    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
+    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
+    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
+  });
+
+  // Masukkan data ke dropdown
+  Array.from(kecamatanSet).sort().forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    kecSelect.appendChild(opt);
+  });
+
+  Array.from(desaKelSet).sort().forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    desaSelect.appendChild(opt);
+  });
+
+  Array.from(statusSet).sort().forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    statusSelect.appendChild(opt);
+  });
+}
+
+// Jalankan setelah data Firebase selesai dimuat
+setTimeout(fillFilterOptions, 1500);
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js">
+// 🔄 Isi otomatis dropdown filter dari data Firebase
+function fillFilterOptions() {
+  const kecSelect = document.getElementById('filterKecamatan');
+  const desaSelect = document.getElementById('filterDesa');
+  const statusSelect = document.getElementById('filterStatus');
+
+  // Kosongkan semua opsi lama dulu
+  [kecSelect, desaSelect, statusSelect].forEach(sel => {
+    sel.innerHTML = '<option value="">Semua</option>';
+  });
+
+  // Buat set unik dari data
+  const kecamatanSet = new Set();
+  const desaKelSet = new Set();
+  const statusSet = new Set();
+
+  globalData.forEach(r => {
+    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
+    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
+    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
+  });
+
+  // Masukkan data ke dropdown
+  Array.from(kecamatanSet).sort().forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    kecSelect.appendChild(opt);
+  });
+
+  Array.from(desaKelSet).sort().forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    desaSelect.appendChild(opt);
+  });
+
+  Array.from(statusSet).sort().forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    statusSelect.appendChild(opt);
+  });
+}
+
+// Jalankan setelah data Firebase selesai dimuat
+setTimeout(fillFilterOptions, 1500);
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+// 🔄 Isi otomatis dropdown filter dari data Firebase
+function fillFilterOptions() {
+  const kecSelect = document.getElementById('filterKecamatan');
+  const desaSelect = document.getElementById('filterDesa');
+  const statusSelect = document.getElementById('filterStatus');
+
+  // Kosongkan semua opsi lama dulu
+  [kecSelect, desaSelect, statusSelect].forEach(sel => {
+    sel.innerHTML = '<option value="">Semua</option>';
+  });
+
+  // Buat set unik dari data
+  const kecamatanSet = new Set();
+  const desaKelSet = new Set();
+  const statusSet = new Set();
+
+  globalData.forEach(r => {
+    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
+    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
+    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
+  });
+
+  // Masukkan data ke dropdown
+  Array.from(kecamatanSet).sort().forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    kecSelect.appendChild(opt);
+  });
+
+  Array.from(desaKelSet).sort().forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    desaSelect.appendChild(opt);
+  });
+
+  Array.from(statusSet).sort().forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    statusSelect.appendChild(opt);
+  });
+}
+
+// Jalankan setelah data Firebase selesai dimuat
+setTimeout(fillFilterOptions, 1500);
+
+</script>
 
 <!-- Firebase compat -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js">
+// 🔄 Isi otomatis dropdown filter dari data Firebase
+function fillFilterOptions() {
+  const kecSelect = document.getElementById('filterKecamatan');
+  const desaSelect = document.getElementById('filterDesa');
+  const statusSelect = document.getElementById('filterStatus');
+
+  // Kosongkan semua opsi lama dulu
+  [kecSelect, desaSelect, statusSelect].forEach(sel => {
+    sel.innerHTML = '<option value="">Semua</option>';
+  });
+
+  // Buat set unik dari data
+  const kecamatanSet = new Set();
+  const desaKelSet = new Set();
+  const statusSet = new Set();
+
+  globalData.forEach(r => {
+    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
+    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
+    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
+  });
+
+  // Masukkan data ke dropdown
+  Array.from(kecamatanSet).sort().forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    kecSelect.appendChild(opt);
+  });
+
+  Array.from(desaKelSet).sort().forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    desaSelect.appendChild(opt);
+  });
+
+  Array.from(statusSet).sort().forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    statusSelect.appendChild(opt);
+  });
+}
+
+// Jalankan setelah data Firebase selesai dimuat
+setTimeout(fillFilterOptions, 1500);
+
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js">
+// 🔄 Isi otomatis dropdown filter dari data Firebase
+function fillFilterOptions() {
+  const kecSelect = document.getElementById('filterKecamatan');
+  const desaSelect = document.getElementById('filterDesa');
+  const statusSelect = document.getElementById('filterStatus');
+
+  // Kosongkan semua opsi lama dulu
+  [kecSelect, desaSelect, statusSelect].forEach(sel => {
+    sel.innerHTML = '<option value="">Semua</option>';
+  });
+
+  // Buat set unik dari data
+  const kecamatanSet = new Set();
+  const desaKelSet = new Set();
+  const statusSet = new Set();
+
+  globalData.forEach(r => {
+    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
+    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
+    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
+  });
+
+  // Masukkan data ke dropdown
+  Array.from(kecamatanSet).sort().forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    kecSelect.appendChild(opt);
+  });
+
+  Array.from(desaKelSet).sort().forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    desaSelect.appendChild(opt);
+  });
+
+  Array.from(statusSet).sort().forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    statusSelect.appendChild(opt);
+  });
+}
+
+// Jalankan setelah data Firebase selesai dimuat
+setTimeout(fillFilterOptions, 1500);
+
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js">
+// 🔄 Isi otomatis dropdown filter dari data Firebase
+function fillFilterOptions() {
+  const kecSelect = document.getElementById('filterKecamatan');
+  const desaSelect = document.getElementById('filterDesa');
+  const statusSelect = document.getElementById('filterStatus');
+
+  // Kosongkan semua opsi lama dulu
+  [kecSelect, desaSelect, statusSelect].forEach(sel => {
+    sel.innerHTML = '<option value="">Semua</option>';
+  });
+
+  // Buat set unik dari data
+  const kecamatanSet = new Set();
+  const desaKelSet = new Set();
+  const statusSet = new Set();
+
+  globalData.forEach(r => {
+    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
+    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
+    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
+  });
+
+  // Masukkan data ke dropdown
+  Array.from(kecamatanSet).sort().forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    kecSelect.appendChild(opt);
+  });
+
+  Array.from(desaKelSet).sort().forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    desaSelect.appendChild(opt);
+  });
+
+  Array.from(statusSet).sort().forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    statusSelect.appendChild(opt);
+  });
+}
+
+// Jalankan setelah data Firebase selesai dimuat
+setTimeout(fillFilterOptions, 1500);
+
+</script>
 
 <script>
 /* =========================
@@ -713,6 +1056,55 @@ document.addEventListener('DOMContentLoaded', ()=>{
 function refreshAll(){ populateFilters(); applyFilters(); updateCharts(); updateMap(); updateKPI(); }
 
 /* End */
+
+// 🔄 Isi otomatis dropdown filter dari data Firebase
+function fillFilterOptions() {
+  const kecSelect = document.getElementById('filterKecamatan');
+  const desaSelect = document.getElementById('filterDesa');
+  const statusSelect = document.getElementById('filterStatus');
+
+  // Kosongkan semua opsi lama dulu
+  [kecSelect, desaSelect, statusSelect].forEach(sel => {
+    sel.innerHTML = '<option value="">Semua</option>';
+  });
+
+  // Buat set unik dari data
+  const kecamatanSet = new Set();
+  const desaKelSet = new Set();
+  const statusSet = new Set();
+
+  globalData.forEach(r => {
+    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
+    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
+    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
+  });
+
+  // Masukkan data ke dropdown
+  Array.from(kecamatanSet).sort().forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = k;
+    kecSelect.appendChild(opt);
+  });
+
+  Array.from(desaKelSet).sort().forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    desaSelect.appendChild(opt);
+  });
+
+  Array.from(statusSet).sort().forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    statusSelect.appendChild(opt);
+  });
+}
+
+// Jalankan setelah data Firebase selesai dimuat
+setTimeout(fillFilterOptions, 1500);
+
 </script>
 </body>
 </html>
