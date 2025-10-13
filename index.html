@@ -29,6 +29,17 @@
       --warning-yellow: #f59e0b;
       --danger-red: #ef4444;
     }
+    
+    /* === CSS BARU UNTUK LOGO HEADER === */
+    .header-logo {
+        height: 40px; /* Atur tinggi logo */
+        width: auto;
+    }
+    .brand-subtext {
+        font-size:0.95rem;
+    }
+    /* ================================== */
+
 
     /* FONT Kustom */
     body { 
@@ -39,7 +50,7 @@
       font-size: 16px; 
     }
     .container-fluid{ padding:26px; max-width:1400px; margin:auto; } /* Kontainer lebih lebar */
-    .brand { color: var(--main-purple); font-weight:800; font-size:1.75rem; }
+    .brand { color: var(--main-purple); font-weight:800; font-size:1.75rem; margin-right: 0 !important; }
     .card { 
       border-radius:16px; /* Lebih rounded */
       background:var(--card-bg); 
@@ -188,15 +199,28 @@
 <body>
 
 <div class="container-fluid">
+  
   <div class="d-flex align-items-center mb-4">
-    <h3 class="me-auto brand"><i class="fa-solid fa-house-chimney"></i> SIRUCI <small class="text-muted fw-normal" style="font-size:0.95rem;">- Sistem Informasi Rutilahu Kabupaten Ciamis</small></h3>
+    
+    <div class="d-flex align-items-center me-auto"> 
+        <img src="https://github.com/kabupatenciamis/rutilahu/blob/main/Lambang_Kabupaten_Ciamis.png?raw=true" class="header-logo me-3" alt="Logo Kabupaten Ciamis">
+        
+        <h3 class="brand">
+            <i class="fa-solid fa-house-chimney"></i> SIRUCI 
+            <small class="text-muted fw-normal brand-subtext">
+                - Sistem Informasi Rutilahu Kabupaten Ciamis
+            </small>
+        </h3>
+    </div>
+    
+    <img src="https://github.com/kabupatenciamis/rutilahu/blob/main/PRKPLH.png?raw=true" class="header-logo me-3" alt="Logo DPRKPLH Ciamis">
+
     <div class="text-end">
       <div style="font-size:0.85rem;color:var(--muted);">Masuk sebagai</div>
       <div id="userRole" class="fw-bold" style="font-size:1rem;">-</div>
       <a id="logoutBtn" class="btn btn-sm btn-outline-danger mt-1" style="display:none;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
     </div>
   </div>
-
   <div class="mb-4" style="color:var(--main-purple);font-weight:600; font-size:1.1rem;">Data Tepat, Bantuan Cepat, Ciamis Hebat</div>
 
   <div class="kpi-grid" id="kpiGrid">
@@ -479,11 +503,11 @@ function buildPopupHTML(r){
         <div><div class="popup-title">${nama}</div><div class="popup-sub">🆔 ${nik}</div></div></div>
       <div class="popup-sub">📍 ${alamat}</div><div style="height:6px;"></div>
       <div class="popup-meta">
-        <div style="font-weight:600; color:${sc.hex};">Kecukupan Ruang: ${status}</div>
+        <div style="font-weight:600; color:${sc.hex};">Kecukupan Ruang : ${status}</div>
         <div>🏡 ${kec} | ${desa} / ${kel}</div>
         <div>📏 ${luas} ${luas? '|' : ''} 👨‍👩‍👧‍👦 ${penghuni}</div>
-        <div>🏷️ Kepemilikan Tanah: ${escapeHtml(r.StatusKepemilikanTanah || "-")}</div>
-        <div>🚽 Sanitasi: ${escapeHtml(r.AksesSanitasi || "-")}</div>
+        <div>🏷️ Kepemilikan Tanah : ${escapeHtml(r.StatusKepemilikanTanah || "-")}</div>
+        <div>🚽 Sanitasi : ${escapeHtml(r.AksesSanitasi || "-")}</div>
       </div>
     </div>
   `;
@@ -515,7 +539,7 @@ function updateMap(){
   markerClusterGroup.addLayers(markers);
 }
 
-// **Fungsi baru untuk mengontrol status checkbox Per Desa**
+// Fungsi untuk mengontrol status checkbox Per Desa
 function updateTogglePerDesaState() {
   const kecSelect = document.getElementById('filterKecamatan');
   const toggleDesa = document.getElementById('togglePerDesa');
