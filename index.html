@@ -216,7 +216,7 @@ table#dataTable tbody tr:hover {
     </div>
 
     <div class="card chart-card">
-      <div style="font-weight:700;margin-bottom:6px;">Pie Chart — Distribusi Kecukupan Ruang</div>
+      <div style="font-weight:700;margin-bottom:6px;">Pie Chart — Distribusi Status Kepemilikan Tanah</div>
       <div style="height:320px;"><canvas id="pieKecukupan"></canvas></div>
     </div>
   </div>
@@ -261,6 +261,8 @@ table#dataTable tbody tr:hover {
             <th class="sortable">Luas Rumah</th>
             <th class="sortable">Jml Penghuni</th>
             <th class="sortable">Kecukupan Ruang</th>
+<th class="sortable">Status Kepemilikan Tanah</th>
+<th class="sortable">Akses Sanitasi</th>
             <th class="sortable">Latitude</th>
             <th class="sortable">Longitude</th>
             <th>Aksi</th>
@@ -747,6 +749,8 @@ function buildPopupHTML(r){
       <div class="popup-sub">📍 ${alamat}</div><div style="height:6px;"></div>
       <div class="popup-meta"><div>🏡 ${kec} | ${desa} / ${kel}</div><div>📏 ${luas} ${luas? '|' : ''} 👨‍👩‍👧‍👦 ${penghuni}</div></div>
       <div style="height:8px;"></div><div style="font-weight:700">📊 Kecukupan: ${status}</div>
+<div>🏷️ Kepemilikan: ${escapeHtml(r.StatusKepemilikanTanah || "-")}</div>
+<div>🚽 Sanitasi: ${escapeHtml(r.AksesSanitasi || "-")}</div>
     </div>
   `;
 }
@@ -785,7 +789,7 @@ function updateCharts(){
     const key = perDesa ? `${kec} - ${desa}${kel? ' / ' + kel : ''}` : kec;
     group[key] = (group[key] || 0) + 1;
 
-    const st = (r.KecukupanRuang||'(Belum)').toString();
+    const st = (r.StatusKepemilikanTanah||'(Belum)').toString();
     pie[st] = (pie[st] || 0) + 1;
   });
 
@@ -888,6 +892,8 @@ function renderTable(){
       <td contenteditable="${isAdmin}">${r.LuasRumah ?? ''}</td>
       <td contenteditable="${isAdmin}">${r.JumlahPenghuni ?? ''}</td>
       <td contenteditable="${isAdmin}">${escapeHtml(r.KecukupanRuang ?? '')}</td>
+<td contenteditable="${isAdmin}">${escapeHtml(r.StatusKepemilikanTanah ?? '')}</td>
+<td contenteditable="${isAdmin}">${escapeHtml(r.AksesSanitasi ?? '')}</td>
       <td contenteditable="${isAdmin}">${r.Latitude ?? ''}</td>
       <td contenteditable="${isAdmin}">${r.Longitude ?? ''}</td>
       <td>
@@ -913,7 +919,7 @@ function renderPagination(total, totalPages){
 
 /* Row CRUD */
 function selectRow(globalIdx, trEl){ document.querySelectorAll('#dataTable tbody tr').forEach(t=>t.classList.remove('selected')); trEl.classList.add('selected'); selectedGlobalIndex = globalIdx; }
-function addRow(){ if(userRole!=='admin') return; const newObj={Nama:'',NoKK:'',NoNIK:'',Alamat:'',Kecamatan:'',Desa:'',Kelurahan:'',LuasRumah:0,JumlahPenghuni:0,KecukupanRuang:'',Latitude:null,Longitude:null}; globalData.push(newObj); populateFilters(); applyFilters(); saveToFirebase(); selectedGlobalIndex = globalData.length-1; }
+function addRow(){ if(userRole!=='admin') return; const newObj={Nama:'',NoKK:'',NoNIK:'',Alamat:'',Kecamatan:'',Desa:'',Kelurahan:'',LuasRumah:0,JumlahPenghuni:0,KecukupanRuang:'',StatusKepemilikanTanah:'',AksesSanitasi:'',Latitude:null,Longitude:null}; globalData.push(newObj); populateFilters(); applyFilters(); saveToFirebase(); selectedGlobalIndex = globalData.length-1; }
 function saveRow(btn){ if(userRole!=='admin') return; const tr = btn.closest('tr'); const idx = parseInt(tr.dataset.idx); const cells = tr.querySelectorAll('td');
   globalData[idx] = {
     Nama: cells[0].innerText.trim(),
@@ -926,6 +932,8 @@ function saveRow(btn){ if(userRole!=='admin') return; const tr = btn.closest('tr
     LuasRumah: safeFloat(cells[7].innerText) || 0,
     JumlahPenghuni: parseInt(cells[8].innerText) || 0,
     KecukupanRuang: cells[9].innerText.trim() || '',
+    StatusKepemilikanTanah: cells[10].innerText.trim() || '',
+    AksesSanitasi: cells[11].innerText.trim() || '',
     Latitude: safeFloat(cells[10].innerText),
     Longitude: safeFloat(cells[11].innerText)
   };
