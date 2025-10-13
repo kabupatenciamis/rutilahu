@@ -8,217 +8,219 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+
 
   <style>
+    /* VARS BARU: Palet Warna Lebih Cerah */
     :root {
-      --page-bg: #f6f7fb;
+      --page-bg: #f8f9fa; /* Lebih terang */
       --card-bg: #ffffff;
-      --text: #0f172a;
+      --text: #1f2937; /* Darker text */
       --muted: #6b7280;
-      --main-purple: #6b21a8;
+      --main-purple: #7c3aed; /* Ungu yang lebih vibrant */
+      --secondary-blue: #3b82f6;
+      --success-green: #10b981;
+      --warning-yellow: #f59e0b;
+      --danger-red: #ef4444;
     }
-    body { margin:0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: var(--page-bg); color:var(--text); }
-    .container-fluid{ padding:22px; max-width:1320px; margin:auto; }
-    .brand { color: var(--main-purple); font-weight:700; }
-    .card { border-radius:12px; background:var(--card-bg); box-shadow: 0 6px 18px rgba(20,24,40,0.06); border:none; }
+
+    /* FONT Kustom */
+    body { 
+      margin:0; 
+      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      background: var(--page-bg); 
+      color:var(--text); 
+      font-size: 16px; 
+    }
+    .container-fluid{ padding:26px; max-width:1400px; margin:auto; } /* Kontainer lebih lebar */
+    .brand { color: var(--main-purple); font-weight:800; font-size:1.75rem; }
+    .card { 
+      border-radius:16px; /* Lebih rounded */
+      background:var(--card-bg); 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06); /* Shadow yang lebih halus */
+      border:1px solid #e5e7eb; /* Border halus */
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+        box-shadow: 0 14px 40px rgba(0,0,0,0.08); /* Sedikit lift-up on hover */
+    }
 
     /* KPI grid */
-    .kpi-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin-bottom:16px; }
-    @media (max-width:992px){ .kpi-grid { grid-template-columns: repeat(2,1fr); } }
+    .kpi-grid { display:grid; grid-template-columns: repeat(6,1fr); gap:16px; margin-bottom:24px; }
+    @media (max-width:1200px){ .kpi-grid { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width:768px){ .kpi-grid { grid-template-columns: repeat(2,1fr); } }
     @media (max-width:576px){ .kpi-grid { grid-template-columns: 1fr; } }
 
     .kpi-card {
-      padding:14px; border-radius:14px; min-height:130px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
-      transition:transform .16s ease, box-shadow .16s ease;
+      padding:18px; 
+      border-radius:14px; 
+      min-height:100px; /* Lebih compact */
+      display:flex; 
+      flex-direction:column; 
+      align-items:center; 
+      justify-content:center; 
+      text-align:center;
+      border:none; /* Hilangkan border individual */
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: transform .2s ease;
     }
-    .kpi-card:hover{ transform:translateY(-6px); box-shadow:0 12px 30px rgba(15,20,40,0.06); }
-    .kpi-label{ color:var(--muted); font-weight:600; font-size:0.95rem; margin-bottom:6px; text-align:center; }
-    .kpi-value{ font-weight:800; font-size:1.9rem; color:var(--text); text-align:center; }
+    .kpi-card:hover{ transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,0.1); }
+    .kpi-label{ color:var(--muted); font-weight:600; font-size:0.85rem; margin-bottom:4px; text-align:center; text-transform:uppercase; }
+    .kpi-value{ font-weight:800; font-size:1.8rem; color:var(--text); text-align:center; }
 
-    .kpi-card:nth-child(1){ background: linear-gradient(180deg,#e6f0ff,#fff); border:1px solid rgba(107,141,242,0.06); }
-    .kpi-card:nth-child(2){ background: linear-gradient(180deg,#e9f7ec,#fff); border:1px solid rgba(34,197,94,0.06); }
-    .kpi-card:nth-child(3){ background: linear-gradient(180deg,#fffaf0,#fff); border:1px solid rgba(250,204,21,0.06); }
-    .kpi-card:nth-child(4){ background: linear-gradient(180deg,#f6eefc,#fff); border:1px solid rgba(107,33,168,0.06); }
-    .kpi-card:nth-child(5){ background: linear-gradient(180deg,#fff3e0,#fff); border:1px solid rgba(249,115,22,0.06); }
-    .kpi-card:nth-child(6){ background: linear-gradient(180deg,#fff0f6,#fff); border:1px solid rgba(244,63,94,0.06); }
+    /* Color scheme KPI yang lebih flat dan konsisten */
+    .kpi-card:nth-child(1){ background: #f0f4ff; } /* Light Blue */
+    .kpi-card:nth-child(2){ background: #e0f2fe; } /* Light Cyan */
+    .kpi-card:nth-child(3){ background: #f0fdf4; } /* Light Green */
+    .kpi-card:nth-child(4){ background: #fdf2f8; } /* Light Pink */
+    .kpi-card:nth-child(5){ background: #fff7ed; } /* Light Orange */
+    .kpi-card:nth-child(6){ background: #f5f3ff; } /* Light Purple */
 
-    /* Charts (MODIFIED) */
-    .charts-row { display:grid; grid-template-columns: 1fr; gap:12px; margin-bottom:16px; } /* Single column for bar chart */
-    .pie-charts-row { display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; margin-bottom:16px; } /* Two columns for pie charts */
-    @media (max-width:992px){ .pie-charts-row{ grid-template-columns: 1fr; } }
-    .chart-card{ padding:12px; border-radius:12px; }
+    /* Charts */
+    .charts-row { gap:16px; margin-bottom:24px; }
+    /* Pie charts menggunakan Bootstrap row/col, jadi hanya perlu gap */
+    .pie-charts-row { margin-bottom: 24px; margin-left: -8px; margin-right: -8px; } /* Override default row margin */
+    .pie-charts-row > div { padding-left: 8px; padding-right: 8px; } /* Apply the gap */
+    
+    .chart-card{ padding:16px; border-radius:16px; }
 
-    /* Table responsive area */
-.table-responsive {
-  border-radius: 12px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  width: 100%;
-  margin-bottom: 12px;
-  background: var(--card-bg);
-}
+    /* Table Improvements */
+    .table-responsive {
+      border-radius: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #e5e7eb; /* Border halus */
+    }
 
-/* Table */
-table#dataTable {
-  width: 100%;
-  min-width: 1200px; /* biar kolom tidak terlalu sempit */
-  border-collapse: collapse;
-}
+    table#dataTable {
+      font-size: 0.9rem;
+    }
 
-table#dataTable thead {
-  background: #0b1220;
-  color: #fff;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-table#dataTable th,
-table#dataTable td {
-  padding: 10px 12px;
-  vertical-align: middle;
-  text-align: left;
-  white-space: nowrap; /* kolom tidak terbungkus */
-}
-
-table#dataTable tbody tr:hover {
-  background: #f3f4f6;
-}
-
-@media (max-width: 768px) {
-  table#dataTable {
-    min-width: 900px;
-    font-size: 0.9rem;
-  }
-  table#dataTable th,
-  table#dataTable td {
-    padding: 8px 10px;
-  }
-}
-
-
-    /* Map under table */
-    #map { height: 420px; border-radius:12px; margin-top:18px; }
-
-    /* Popup */
-    .popup-card { border-radius:10px; padding:10px; color:#0f172a; font-size:0.92rem; line-height:1.25; box-shadow: 0 8px 22px rgba(15,20,40,0.08); max-width:260px; animation: popupFadeIn .22s ease; }
-    /* Popup position & styling fix */
-.leaflet-popup {
-  bottom: 10px !important; /* posisi lebih pas di atas marker */
-}
-
-.leaflet-popup-content-wrapper.custom-popup,
-.custom-popup .leaflet-popup-content-wrapper {
-  background: transparent;
-  box-shadow: none;
-  border: none;
-  border-radius: 12px;
-}
-
-.custom-popup .leaflet-popup-content {
-  margin: 0;
-  padding: 0;
-  background: transparent;
-}
-
-.custom-popup .leaflet-popup-tip {
-  display: none; /* hilangkan segitiga bawah */
-}
-
-.popup-card {
-  margin-top: -6px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-  border-radius: 12px;
-  padding: 10px 12px;
-  width: 240px;
-  animation: popupFadeIn .25s ease;
-}
-
-.popup-card::before {
-  content: "";
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 12px;
-  background: inherit;
-  clip-path: polygon(50% 100%, 0 0, 100% 0);
-}
-
-    .popup-row { display:flex; gap:8px; align-items:center; margin-bottom:6px; }
-    .popup-title { font-weight:700; font-size:1rem; margin-bottom:4px; }
-    .popup-sub { color: #374151; font-size:0.9rem; }
-    .popup-meta { font-size:0.88rem; color:#374151; display:flex; gap:8px; flex-wrap:wrap; }
-    @keyframes popupFadeIn { from { opacity:0; transform: translateY(6px) scale(.99); } to { opacity:1; transform: translateY(0) scale(1); } }
-
-    @media (max-width:576px){
-      .popup-card { max-width:220px; font-size:0.88rem; }
-      .charts-row .chart-card { padding:8px; }
+    table#dataTable thead {
+      background: var(--main-purple); /* Header warna ungu */
+      color: #fff;
     }
     
-    /* NEW: Custom CSS for L.DivIcon pin shape (House marker) */
-    .custom-house-marker {
-      /* This is required to allow the DivIcon content (the rotated div) to control its own size and positioning */
-      border: none;
-      background: none;
+    table#dataTable th {
+      font-weight: 600;
+      padding: 12px 16px;
+    }
+
+    table#dataTable tbody tr:nth-child(odd) {
+      background-color: #f9fafb; /* Stripe effect */
+    }
+
+    table#dataTable tbody tr:hover {
+      background: #eef2ff; /* Hover warna biru lembut */
+      transition: background 0.2s ease;
     }
     
-    /* NEW: Custom styling for MarkerCluster circles (optional but good) */
-    .marker-cluster-small { background-color: rgba(107, 33, 168, 0.6); }
-    .marker-cluster-small div { background-color: rgba(107, 33, 168, 0.9); }
+    /* Input & Select fields */
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    
+    /* Button Group Custom */
+    .btn-group .btn {
+        border-radius: 8px !important;
+        margin-left: 8px;
+        transition: all 0.2s ease;
+    }
+    .btn-group .btn:first-child { margin-left: 0; }
+    
+    /* Map */
+    #map { height: 500px; border-radius:16px; margin-top:18px; border: 1px solid #e5e7eb; } /* Map lebih tinggi */
 
-    .marker-cluster-medium { background-color: rgba(34, 197, 94, 0.6); }
-    .marker-cluster-medium div { background-color: rgba(34, 197, 94, 0.9); }
+    /* Custom Marker Styling - Lebih Rapi */
+    .custom-house-marker { border: none; background: none; }
 
-    .marker-cluster-large { background-color: rgba(249, 115, 22, 0.6); }
-    .marker-cluster-large div { background-color: rgba(249, 115, 22, 0.9); }
+    /* Custom Marker Cluster Styling (Matching Purple & Green) */
+    .marker-cluster-small { background-color: rgba(124, 58, 237, 0.6); } /* Main Purple */
+    .marker-cluster-small div { background-color: rgba(124, 58, 237, 0.9); }
+
+    .marker-cluster-medium { background-color: rgba(16, 185, 129, 0.6); } /* Success Green */
+    .marker-cluster-medium div { background-color: rgba(16, 185, 129, 0.9); }
+
+    .marker-cluster-large { background-color: rgba(245, 158, 11, 0.6); } /* Warning Yellow */
+    .marker-cluster-large div { background-color: rgba(245, 158, 11, 0.9); }
 
     .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
       color: white;
       font-weight: 700;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.8);
       text-shadow: 0 1px 1px rgba(0,0,0,0.2);
     }
+    
+    /* Popup Styling - Lebih Modern */
+    .popup-card { 
+        border-radius:12px; 
+        padding:12px; 
+        color:var(--text); 
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15); 
+        width: 250px;
+    }
+    .popup-title { font-weight:800; font-size:1.1rem; margin-bottom:2px; }
+    .popup-sub { color: #4b5563; font-size:0.88rem; line-height:1.4; }
+    .popup-meta { font-size:0.85rem; color:#4b5563; }
+    
+    .popup-card::before { background: inherit; } /* Biar segitiga pop-up mengikuti warna background */
+    
+    /* STYLE BARU untuk label yang disabled */
+    #togglePerDesa:disabled + #togglePerDesaLabel {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
   </style>
 </head>
 <body>
 
 <div class="container-fluid">
-  <div class="d-flex align-items-center mb-3">
-    <h3 class="me-auto brand"><i class="fa-solid fa-house-chimney"></i> SIRUCI <small class="text-muted">- Sistem Informasi Rutilahu Kabupaten Ciamis</small></h3>
+  <div class="d-flex align-items-center mb-4">
+    <h3 class="me-auto brand"><i class="fa-solid fa-house-chimney"></i> SIRUCI <small class="text-muted fw-normal" style="font-size:0.95rem;">- Sistem Informasi Rutilahu Kabupaten Ciamis</small></h3>
     <div class="text-end">
-      <div style="font-size:0.9rem;color:var(--muted);">Masuk sebagai</div>
-      <div id="userRole" class="fw-bold">-</div>
+      <div style="font-size:0.85rem;color:var(--muted);">Masuk sebagai</div>
+      <div id="userRole" class="fw-bold" style="font-size:1rem;">-</div>
       <a id="logoutBtn" class="btn btn-sm btn-outline-danger mt-1" style="display:none;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
     </div>
   </div>
 
-  <div class="mb-2" style="color:var(--main-purple);font-weight:600;">Data Tepat, Bantuan Cepat, Ciamis Hebat</div>
+  <div class="mb-4" style="color:var(--main-purple);font-weight:600; font-size:1.1rem;">Data Tepat, Bantuan Cepat, Ciamis Hebat</div>
 
   <div class="kpi-grid" id="kpiGrid">
-    <div class="kpi-card card">
+    <div class="kpi-card">
       <div class="kpi-label">Total Rutilahu</div>
       <div class="kpi-value" id="totalData">0</div>
     </div>
-    <div class="kpi-card card">
+    <div class="kpi-card">
       <div class="kpi-label">Kecamatan</div>
       <div class="kpi-value" id="totalKecamatan">0</div>
     </div>
-    <div class="kpi-card card">
+    <div class="kpi-card">
       <div class="kpi-label">Desa / Kelurahan</div>
-      <div class="kpi-value" id="totalDesa">0</div> </div>
-    <div class="kpi-card card">
+      <div class="kpi-value" id="totalDesa">0</div>
+    </div>
+    <div class="kpi-card">
       <div class="kpi-label">Total Penghuni</div>
       <div class="kpi-value" id="totalPenghuni">0</div>
     </div>
-    <div class="kpi-card card">
+    <div class="kpi-card">
       <div class="kpi-label">Kecukupan Ruang (CUKUP)</div>
       <div class="kpi-value" id="totalCukup">0</div>
     </div>
-    <div class="kpi-card card">
+    <div class="kpi-card">
       <div class="kpi-label">Kecukupan Ruang (TIDAK)</div>
       <div class="kpi-value" id="totalTidak">0</div>
     </div>
@@ -226,35 +228,41 @@ table#dataTable tbody tr:hover {
 
   <div class="charts-row">
     <div class="card chart-card">
-      <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-          <div style="font-weight:700">Bar Chart — Jumlah per Kecamatan / Desa-Kelurahan</div>
+          <div style="font-weight:700; font-size:1.1rem;">Bar Chart — Jumlah per Kecamatan / Desa-Kelurahan</div>
           <div class="text-muted" style="font-size:0.85rem;">Centang "Per Desa" untuk melihat per (Desa / Kelurahan)</div>
         </div>
         <div>
-          <input type="checkbox" id="togglePerDesa" /> <label for="togglePerDesa" style="font-size:0.86rem;color:var(--muted);">Per Desa</label>
+          <input type="checkbox" id="togglePerDesa" /> 
+          <label for="togglePerDesa" id="togglePerDesaLabel" style="font-size:0.9rem;color:var(--muted);font-weight:600;">Per Desa</label>
         </div>
       </div>
-      <div style="height:320px;"><canvas id="barKecamatan"></canvas></div>
+      <div style="height:350px;"><canvas id="barKecamatan"></canvas></div>
     </div>
   </div>
   
-  <div class="pie-charts-row">
-    <div class="card chart-card">
-      <div style="font-weight:700;margin-bottom:6px;">Pie Chart — Distribusi Status Kepemilikan Tanah</div>
-      <div style="height:320px;"><canvas id="pieKepemilikan"></canvas></div> </div>
-    
-    <div class="card chart-card">
-      <div style="font-weight:700;margin-bottom:6px;">Pie Chart — Distribusi Akses Sanitasi</div>
-      <div style="height:320px;"><canvas id="pieSanitasi"></canvas></div> </div>
+  <div class="row pie-charts-row">
+    <div class="col-lg-6 mb-3 mb-lg-0">
+        <div class="card chart-card">
+          <div style="font-weight:700;margin-bottom:6px; font-size:1.1rem;">Pie Chart — Distribusi Status Kepemilikan Tanah</div>
+          <div style="height:320px;"><canvas id="pieKepemilikan"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card chart-card">
+          <div style="font-weight:700;margin-bottom:6px; font-size:1.1rem;">Pie Chart — Distribusi Akses Sanitasi</div>
+          <div style="height:320px;"><canvas id="pieSanitasi"></canvas></div>
+        </div>
+    </div>
   </div>
 
-  <div class="card p-3 mb-3">
-    <h5 class="card-title">Tabel Data</h5>
+  <div class="card p-4 mb-4">
+    <h5 class="card-title fw-bold" style="font-size:1.4rem;">Tabel Data Rutilahu</h5>
 
-    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
       <div class="input-group" style="max-width:300px;">
-        <span class="input-group-text">🔍</span>
+        <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
         <input type="text" id="searchInput" class="form-control" placeholder="Cari Nama/NIK..." autocomplete="off">
       </div>
 
@@ -267,16 +275,16 @@ table#dataTable tbody tr:hover {
           <i class="fa-solid fa-file-excel"></i> Unggah XLSX
           <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none;">
         </label>
-        <button id="downloadTemplate" class="btn btn-outline-secondary">Template</button>
+        <button id="downloadTemplate" class="btn btn-outline-secondary"><i class="fa-solid fa-download"></i> Template</button>
         <button class="btn btn-success" onclick="addRow()"><i class="fa-solid fa-plus"></i> Tambah Baris</button>
-        <button class="btn btn-outline-primary" onclick="exportExcel()"><i class="fa-solid fa-share"></i> Ekspor XLSX</button>
+        <button class="btn btn-outline-primary" onclick="exportExcel()"><i class="fa-solid fa-share-square"></i> Ekspor XLSX</button>
         <button id="clearData" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Hapus Semua</button>
       </div>
     </div>
 
     <div class="table-responsive">
-      <table id="dataTable" class="table table-hover table-striped">
-        <thead class="bg-dark text-white">
+      <table id="dataTable" class="table table-striped">
+        <thead>
           <tr>
             <th class="sortable">Nama</th>
             <th class="sortable">No. KK</th>
@@ -314,31 +322,30 @@ table#dataTable tbody tr:hover {
     </div>
   </div>
 
-  <div class="card p-3 mb-3">
-    <h5 class="card-title">Peta Sebaran Rutilahu</h5>
-    <div class="text-muted" style="font-size:0.88rem;margin-bottom:8px;">Klik peta untuk menyimpan koordinat ke baris terpilih (Admin)</div>
+  <div class="card p-4 mb-4">
+    <h5 class="card-title fw-bold" style="font-size:1.4rem;">Peta Sebaran Rutilahu</h5>
+    <div class="text-muted" style="font-size:0.9rem;margin-bottom:12px;">Klik peta untuk menyimpan koordinat ke baris terpilih (Admin)</div>
     <div id="map"></div>
   </div>
 
-  <footer style="text-align:center;color:var(--muted);margin-top:18px;">© 2025 Pemerintah Kabupaten Ciamis — Dinas Perumahan Rakyat, Kawasan Permukiman dan Lingkungan Hidup</footer>
+  <footer style="text-align:center;color:var(--muted);margin-top:24px; font-size:0.85rem;">© 2025 Pemerintah Kabupaten Ciamis — Dinas Perumahan Rakyat, Kawasan Permukiman dan Lingkungan Hidup</footer>
 </div>
 
-<div id="login-overlay" style="position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); z-index:2000;">
-  <div class="card p-4" style="width:100%;max-width:420px;">
-    <h5 class="mb-3">Login ke SIRUCI</h5>
+<div id="login-overlay" style="position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:2000;">
+  <div class="card p-4" style="width:100%;max-width:420px; border-radius:12px;">
+    <h5 class="mb-3 fw-bold">Login ke SIRUCI</h5>
     <div class="mb-2"><input id="adminEmail" class="form-control" value="admin@ciamis.go.id" disabled></div>
     <div class="mb-3"><input id="adminPassword" type="password" class="form-control" placeholder="Password Admin"></div>
     <div class="d-grid gap-2">
-      <button id="loginAdminBtn" class="btn btn-primary">Login sebagai Admin</button>
+      <button id="loginAdminBtn" class="btn btn-primary" style="background-color: var(--main-purple); border-color: var(--main-purple);">Login sebagai Admin</button>
       <button id="loginViewerBtn" class="btn btn-outline-secondary">Login sebagai Viewer</button>
     </div>
-    <div id="loginErrorMsg" style="display:none;color:#c00;margin-top:8px;"></div>
+    <div id="loginErrorMsg" style="display:none;color:var(--danger-red);margin-top:8px;font-size:0.9rem;"></div>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -355,7 +362,6 @@ let globalData = [];
 let filteredView = [];
 let selectedGlobalIndex = null;
 let chartKec = null, chartKepemilikan = null, chartSanitasi = null;
-// MODIFIED: markersLayer diganti menjadi markerClusterGroup
 let markerClusterGroup;
 let currentPage = 1;
 let pageSize = parseInt(localStorage.getItem('rutilahu_page_size')||'10',10);
@@ -401,7 +407,7 @@ L.Icon.Default.mergeOptions({
 });
 
 /* House Icon Generator - L.DivIcon for robust rendering */
-function createHouseIconHex(hexColor = '#6b21a8') {
+function createHouseIconHex(hexColor = '#7c3aed') { /* Warna ungu baru */
   const divContent = `
     <div style="
       background-color: ${hexColor};
@@ -413,8 +419,8 @@ function createHouseIconHex(hexColor = '#6b21a8') {
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      border: 2px solid white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      border: 3px solid white; /* Border lebih tebal */
     ">
       <i class="fa-solid fa-house-chimney" style="
         color: white;
@@ -426,11 +432,11 @@ function createHouseIconHex(hexColor = '#6b21a8') {
   `;
 
   return L.divIcon({
-    className: 'custom-house-marker', // Class added for custom CSS if needed
+    className: 'custom-house-marker', 
     html: divContent,
     iconSize: [30, 30],
-    iconAnchor: [15, 30], // Anchor at the bottom tip of the rotated square/pin (half width, full height)
-    popupAnchor: [0, -25]
+    iconAnchor: [15, 30], 
+    popupAnchor: [0, -30] 
   });
 }
 // =========================================================================
@@ -439,20 +445,20 @@ function createHouseIconHex(hexColor = '#6b21a8') {
 const map = L.map('map').setView([-7.33,108.33],10);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution: '© OpenStreetMap' }).addTo(map);
 
-// MODIFIED: Inisialisasi Marker Cluster Group
+// Inisialisasi Marker Cluster Group
 markerClusterGroup = L.markerClusterGroup({
-    maxClusterRadius: 80, // Mengurangi radius untuk mengelompokkan lebih banyak marker
-    chunkedLoading: true // Memuat marker secara bertahap untuk performa yang lebih baik
+    maxClusterRadius: 80, 
+    chunkedLoading: true 
 }).addTo(map);
 
 
 /* status color */
 function statusColor(status){
-  if(!status) return {hex:'#6b21a8', bg:'#f3e5f5'};
+  if(!status) return {hex:'#7c3aed', bg:'#f5f3ff'}; /* Main Purple */
   const s = status.toString().toLowerCase();
-  if(s.includes('cukup')) return {hex:'#16a34a', bg:'#e8f5e9'};
-  if(s.includes('tidak')) return {hex:'#dc2626', bg:'#fdecea'};
-  return {hex:'#6b21a8', bg:'#f3e5f5'};
+  if(s.includes('cukup')) return {hex:'#10b981', bg:'#f0fdf4'}; /* Success Green */
+  if(s.includes('tidak')) return {hex:'#ef4444', bg:'#fef2f2'}; /* Danger Red */
+  return {hex:'#7c3aed', bg:'#f5f3ff'};
 }
 
 /* popup HTML (include Kelurahan) */
@@ -468,21 +474,23 @@ function buildPopupHTML(r){
   const penghuni = r.JumlahPenghuni || '';
   const status = escapeHtml(r.KecukupanRuang || '(Belum)');
   return `
-    <div class="popup-card" style="background:${sc.bg};">
+    <div class="popup-card" style="background:${sc.bg}; border: 1px solid ${sc.hex};">
       <div class="popup-row"><span style="font-size:1.1rem">🏠</span>
         <div><div class="popup-title">${nama}</div><div class="popup-sub">🆔 ${nik}</div></div></div>
       <div class="popup-sub">📍 ${alamat}</div><div style="height:6px;"></div>
-      <div class="popup-meta"><div>🏡 ${kec} | ${desa} / ${kel}</div><div>📏 ${luas} ${luas? '|' : ''} 👨‍👩‍👧‍👦 ${penghuni}</div></div>
-      <div style="height:8px;"></div><div style="font-weight:700">📊 Kecukupan: ${status}</div>
-<div>🏷️ Kepemilikan: ${escapeHtml(r.StatusKepemilikanTanah || "-")}</div>
-<div>🚽 Sanitasi: ${escapeHtml(r.AksesSanitasi || "-")}</div>
+      <div class="popup-meta">
+        <div style="font-weight:600; color:${sc.hex};">Kecukupan Ruang: ${status}</div>
+        <div>🏡 ${kec} | ${desa} / ${kel}</div>
+        <div>📏 ${luas} ${luas? '|' : ''} 👨‍👩‍👧‍👦 ${penghuni}</div>
+        <div>🏷️ Kepemilikan Tanah: ${escapeHtml(r.StatusKepemilikanTanah || "-")}</div>
+        <div>🚽 Sanitasi: ${escapeHtml(r.AksesSanitasi || "-")}</div>
+      </div>
     </div>
   `;
 }
 
 /* Update map markers */
 function updateMap(){
-  // MODIFIED: Hapus semua marker dari cluster group
   markerClusterGroup.clearLayers();
   
   const markers = [];
@@ -490,11 +498,11 @@ function updateMap(){
   filteredView.forEach(r=>{
     if(r.Latitude != null && r.Longitude != null){
       const st = statusColor(r.KecukupanRuang || '');
-      const icon = createHouseIconHex(st.hex);
+      // Use the new main purple color for consistency if status is unknown/default
+      const icon = createHouseIconHex(st.hex); 
       const m = L.marker([r.Latitude, r.Longitude], {icon});
       m.bindPopup(buildPopupHTML(r), {
         className: 'custom-popup',
-        offset: L.point(0, -20),
         maxWidth: 280,
         closeButton: true,
         autoPanPaddingTopLeft: L.point(40, 40),
@@ -504,16 +512,30 @@ function updateMap(){
     }
   });
   
-  // MODIFIED: Tambahkan semua marker sekaligus ke cluster group
   markerClusterGroup.addLayers(markers);
+}
+
+// **Fungsi baru untuk mengontrol status checkbox Per Desa**
+function updateTogglePerDesaState() {
+  const kecSelect = document.getElementById('filterKecamatan');
+  const toggleDesa = document.getElementById('togglePerDesa');
+  
+  const isDisabled = !kecSelect.value; // Jika value kosong ("Semua Kecamatan")
+  
+  if (isDisabled) {
+    toggleDesa.checked = false; // Reset centang jika non-aktif
+    toggleDesa.disabled = true;
+  } else {
+    toggleDesa.disabled = false;
+  }
 }
 
 /* Charts: perDesa uses "Kecamatan - Desa / Kelurahan" as label to keep uniqueness */
 function updateCharts(){
   const perDesa = document.getElementById('togglePerDesa')?.checked;
   const group = {};
-  const pieKepemilikan = {}; // Renamed
-  const pieSanitasi = {}; // New
+  const pieKepemilikan = {};
+  const pieSanitasi = {};
 
   filteredView.forEach(r=>{
     const kec = (r.Kecamatan||'(Belum)').trim() || '(Belum)';
@@ -522,11 +544,11 @@ function updateCharts(){
     const key = perDesa ? `${kec} - ${desa}${kel? ' / ' + kel : ''}` : kec;
     group[key] = (group[key] || 0) + 1;
 
-    const stKepemilikan = (r.StatusKepemilikanTanah||'(Belum)').toString(); // Renamed
-    pieKepemilikan[stKepemilikan] = (pieKepemilikan[stKepemilikan] || 0) + 1; // Renamed
+    const stKepemilikan = (r.StatusKepemilikanTanah||'(Belum)').toString();
+    pieKepemilikan[stKepemilikan] = (pieKepemilikan[stKepemilikan] || 0) + 1;
 
-    const stSanitasi = (r.AksesSanitasi||'(Belum)').toString(); // New
-    pieSanitasi[stSanitasi] = (pieSanitasi[stSanitasi] || 0) + 1; // New
+    const stSanitasi = (r.AksesSanitasi||'(Belum)').toString();
+    pieSanitasi[stSanitasi] = (pieSanitasi[stSanitasi] || 0) + 1;
   });
 
   const labels = Object.keys(group).sort((a,b)=> group[b]-group[a]);
@@ -537,32 +559,36 @@ function updateCharts(){
 
   const pieSanitasiLabels = Object.keys(pieSanitasi);
   const pieSanitasiValues = pieSanitasiLabels.map(k=> pieSanitasi[k]);
+  
+  // Warna kustom untuk chart
+  const barColors = labels.map((_, i) => i % 2 === 0 ? 'rgba(124, 58, 237, 0.9)' : 'rgba(59, 130, 246, 0.9)');
+  const pieColors = ['#7c3aed', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#94a3b8']; // Purple, Green, Yellow, Red, Blue, Gray
 
   if(chartKec) chartKec.destroy();
-  if(chartKepemilikan) chartKepemilikan.destroy(); // Renamed
-  if(chartSanitasi) chartSanitasi.destroy(); // New
+  if(chartKepemilikan) chartKepemilikan.destroy();
+  if(chartSanitasi) chartSanitasi.destroy();
 
   const ctxK = document.getElementById('barKecamatan').getContext('2d');
   chartKec = new Chart(ctxK, {
     type:'bar',
-    data:{ labels, datasets:[{ label: perDesa ? 'Jumlah per Desa/Kelurahan' : 'Jumlah per Kecamatan', data: values, backgroundColor: perDesa ? 'rgba(34,197,94,0.85)' : 'rgba(107,141,242,0.9)' }] },
+    data:{ labels, datasets:[{ label: perDesa ? 'Jumlah per Desa/Kelurahan' : 'Jumlah per Kecamatan', data: values, backgroundColor: barColors }] },
     options:{
       responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false }}, animation:{ duration:700 },
-      scales:{ x:{ ticks:{ color:'#475569', autoSkip:false, maxRotation:60, minRotation:0 } }, y:{ ticks:{ color:'#475569' } } }
+      scales:{ x:{ ticks:{ color:'#475569', autoSkip:false, maxRotation:45, minRotation:0 } }, y:{ ticks:{ color:'#475569' } } }
     }
   });
 
-  const ctxP_Kepemilikan = document.getElementById('pieKepemilikan').getContext('2d'); // Renamed
-  chartKepemilikan = new Chart(ctxP_Kepemilikan, { // Renamed
+  const ctxP_Kepemilikan = document.getElementById('pieKepemilikan').getContext('2d');
+  chartKepemilikan = new Chart(ctxP_Kepemilikan, {
     type:'pie',
-    data:{ labels: pieKepemilikanLabels, datasets:[{ data: pieKepemilikanValues, backgroundColor:['#6b8df2','#22c55e','#f59e0b','#ef4444','#a78bfa','#94a3b8'] }] },
+    data:{ labels: pieKepemilikanLabels, datasets:[{ data: pieKepemilikanValues, backgroundColor: pieColors }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' }}, animation:{ duration:700 } }
   });
 
-  const ctxP_Sanitasi = document.getElementById('pieSanitasi').getContext('2d'); // New
-  chartSanitasi = new Chart(ctxP_Sanitasi, { // New
+  const ctxP_Sanitasi = document.getElementById('pieSanitasi').getContext('2d');
+  chartSanitasi = new Chart(ctxP_Sanitasi, {
     type:'pie',
-    data:{ labels: pieSanitasiLabels, datasets:[{ data: pieSanitasiValues, backgroundColor:['#16a34a','#f59e0b','#dc2626','#6b21a8','#94a3b8'] }] },
+    data:{ labels: pieSanitasiLabels, datasets:[{ data: pieSanitasiValues, backgroundColor: pieColors.slice(0, pieSanitasiLabels.length) }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' }}, animation:{ duration:700 } }
   });
 }
@@ -577,7 +603,7 @@ function populateFilters(){
   const selectedKel = kelSel.value;
 
   const kecSet = new Set(globalData.map(d=> (d.Kecamatan||'').trim()).filter(Boolean));
-  kecSel.innerHTML = '<option value="">Semua</option>';
+  kecSel.innerHTML = '<option value="">Semua Kecamatan</option>';
   Array.from(kecSet).sort().forEach(k => { kecSel.innerHTML += `<option value="${k}" ${k===selectedKec?'selected':''}>${k}</option>`; });
 
   // Desa options (respect selected kecamatan)
@@ -609,6 +635,9 @@ function populateFilters(){
   Array.from(kelMap.entries()).sort((a,b)=> a[1].localeCompare(b[1])).forEach(([key,label])=>{
     kelSel.innerHTML += `<option value="${key}" ${key===selectedKel?'selected':''}>${label}</option>`;
   });
+  
+  // Panggil fungsi kontrol checkbox
+  updateTogglePerDesaState();
 }
 
 /* Sorting */
@@ -660,7 +689,13 @@ function renderPagination(total, totalPages){
   pg.appendChild(createBtn('⟨', ()=>{ if(currentPage>1){ currentPage--; renderTable(); } }, currentPage===1));
   const maxButtons = 5; let start = Math.max(1, currentPage - Math.floor(maxButtons/2)); let end = Math.min(totalPages, start + maxButtons -1);
   if(end - start < maxButtons -1) start = Math.max(1, end - maxButtons +1);
-  for(let p=start;p<=end;p++){ const cls = p===currentPage ? 'btn-primary' : 'btn-outline-secondary'; pg.appendChild(createBtn(p, ()=>{ currentPage=p; renderTable(); }, false, cls)); }
+  for(let p=start;p<=end;p++){ const cls = p===currentPage ? 'btn-primary' : 'btn-outline-secondary'; 
+    const customCls = p === currentPage ? 'btn-primary' : 'btn-outline-secondary';
+    const customStyle = p === currentPage ? `background-color: var(--main-purple); border-color: var(--main-purple);` : '';
+    const b = createBtn(p, ()=>{ currentPage=p; renderTable(); }, false, customCls);
+    b.style = customStyle;
+    pg.appendChild(b); 
+  }
   pg.appendChild(createBtn('⟩', ()=>{ if(currentPage<totalPages){ currentPage++; renderTable(); } }, currentPage===totalPages));
 }
 
@@ -734,6 +769,9 @@ function applyFilters(){
     if(s){ const hay = (((row.Nama||'') + ' ' + (row.NoNIK||'')).toLowerCase()); if(!hay.includes(s)) return; }
     filteredView.push(Object.assign({}, row, {_idx: idx}));
   });
+  
+  // Panggil fungsi kontrol checkbox setiap kali filter berubah
+  updateTogglePerDesaState(); 
 
   applySavedSort(); sortFilteredViewIfNeeded(); setHeaderSortUI();
   currentPage = 1; renderTable(); updateCharts(); updateMap(); updateKPI();
@@ -741,7 +779,7 @@ function applyFilters(){
 
 /* File import/export (Kelurahan included) */
 document.getElementById('fileInput').addEventListener('change', handleFile, false);
-function handleFile(ev){ const f = ev.target.files[0]; if(!f) return; const reader = new FileReader(); reader.onload = function(e){ const data = new Uint8Array(e.target.result); const wb = XLSX.read(data,{type:'array'}); const ws = wb.Sheets[wb.SheetNames[0]]; const arr = XLSX.utils.sheet_to_json(ws,{defval:''});
+function handleFile(ev){ if(userRole!=='admin') return; const f = ev.target.files[0]; if(!f) return; const reader = new FileReader(); reader.onload = function(e){ const data = new Uint8Array(e.target.result); const wb = XLSX.read(data,{type:'array'}); const ws = wb.Sheets[wb.SheetNames[0]]; const arr = XLSX.utils.sheet_to_json(ws,{defval:''});
   globalData = arr.map(r=>({
     Nama: r.Nama||r.nama||'',
     NoKK: r.NoKK||r.No_KK||'',
@@ -753,8 +791,8 @@ function handleFile(ev){ const f = ev.target.files[0]; if(!f) return; const read
     LuasRumah: safeFloat(r.LuasRumah||r.luas)||0,
     JumlahPenghuni: parseInt(r.JumlahPenghuni||r.jumlah)||0,
     KecukupanRuang: (r.KecukupanRuang||'').toString(),
-    StatusKepemilikanTanah: (r.StatusKepemilikanTanah||r.statusKepemilikanTanah||'').toString(), // Added fallback
-    AksesSanitasi: (r.AksesSanitasi||r.aksesSanitasi||'').toString(), // Added fallback
+    StatusKepemilikanTanah: (r.StatusKepemilikanTanah||r.statusKepemilikanTanah||'').toString(),
+    AksesSanitasi: (r.AksesSanitasi||r.aksesSanitasi||'').toString(),
     Latitude: safeFloat(r.Latitude||r.lat),
     Longitude: safeFloat(r.Longitude||r.lng)
   }));
@@ -787,11 +825,12 @@ map.on('click', function(e){
   if(selectedGlobalIndex === null){ alert('Pilih baris pada tabel terlebih dahulu.'); return; }
   globalData[selectedGlobalIndex].Latitude = lat; globalData[selectedGlobalIndex].Longitude = lng;
   applyFilters(); saveToFirebase();
-  const m = L.marker([lat,lng], {icon: createHouseIconHex('#6b21a8')}).addTo(map).bindPopup('Koordinat disimpan').openPopup();
+  const m = L.marker([lat,lng], {icon: createHouseIconHex('#7c3aed')}).addTo(map).bindPopup('Koordinat disimpan').openPopup();
   setTimeout(()=> map.removeLayer(m), 1200);
 });
 
 /* Init bindings */
+// PENTING: Panggil populateFilters/applyFilters saat filter Kecamatan berubah
 document.getElementById('filterKecamatan').addEventListener('change', ()=>{ populateFilters(); applyFilters(); });
 document.getElementById('filterDesa').addEventListener('change', ()=>{ populateFilters(); applyFilters(); });
 document.getElementById('filterKelurahan').addEventListener('change', applyFilters);
