@@ -321,6 +321,7 @@ function fillFilterOptions() {
 
   // Kosongkan semua opsi lama dulu
   [kecSelect, desaSelect, statusSelect].forEach(sel => {
+  if (!sel) return;
     sel.innerHTML = '<option value="">Semua</option>';
   });
 
@@ -354,12 +355,36 @@ function fillFilterOptions() {
     const opt = document.createElement('option');
     opt.value = s;
     opt.textContent = s;
-    statusSelect.appendChild(opt);
+    if (statusSelect) statusSelect.appendChild(opt);
   });
 }
 
 // Jalankan setelah data Firebase selesai dimuat
 setTimeout(fillFilterOptions, 1500);
+
+
+// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
+const toggleDesa = document.getElementById('togglePerDesa');
+const kecFilter = document.getElementById('filterKecamatan');
+
+function updateToggleDesaState() {
+  if (kecFilter.value === "" || kecFilter.value === null) {
+    toggleDesa.checked = false;
+    toggleDesa.disabled = true;
+  } else {
+    toggleDesa.disabled = false;
+  }
+}
+
+// Jalankan saat pertama kali halaman dimuat
+document.addEventListener('DOMContentLoaded', updateToggleDesaState);
+
+// Jalankan saat filter kecamatan berubah
+kecFilter.addEventListener('change', () => {
+  populateFilters();
+  applyFilters();
+  updateToggleDesaState();
+});
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js">
@@ -371,6 +396,7 @@ function fillFilterOptions() {
 
   // Kosongkan semua opsi lama dulu
   [kecSelect, desaSelect, statusSelect].forEach(sel => {
+  if (!sel) return;
     sel.innerHTML = '<option value="">Semua</option>';
   });
 
@@ -404,12 +430,36 @@ function fillFilterOptions() {
     const opt = document.createElement('option');
     opt.value = s;
     opt.textContent = s;
-    statusSelect.appendChild(opt);
+    if (statusSelect) statusSelect.appendChild(opt);
   });
 }
 
 // Jalankan setelah data Firebase selesai dimuat
 setTimeout(fillFilterOptions, 1500);
+
+
+// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
+const toggleDesa = document.getElementById('togglePerDesa');
+const kecFilter = document.getElementById('filterKecamatan');
+
+function updateToggleDesaState() {
+  if (kecFilter.value === "" || kecFilter.value === null) {
+    toggleDesa.checked = false;
+    toggleDesa.disabled = true;
+  } else {
+    toggleDesa.disabled = false;
+  }
+}
+
+// Jalankan saat pertama kali halaman dimuat
+document.addEventListener('DOMContentLoaded', updateToggleDesaState);
+
+// Jalankan saat filter kecamatan berubah
+kecFilter.addEventListener('change', () => {
+  populateFilters();
+  applyFilters();
+  updateToggleDesaState();
+});
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js">
@@ -421,6 +471,7 @@ function fillFilterOptions() {
 
   // Kosongkan semua opsi lama dulu
   [kecSelect, desaSelect, statusSelect].forEach(sel => {
+  if (!sel) return;
     sel.innerHTML = '<option value="">Semua</option>';
   });
 
@@ -454,12 +505,36 @@ function fillFilterOptions() {
     const opt = document.createElement('option');
     opt.value = s;
     opt.textContent = s;
-    statusSelect.appendChild(opt);
+    if (statusSelect) statusSelect.appendChild(opt);
   });
 }
 
 // Jalankan setelah data Firebase selesai dimuat
 setTimeout(fillFilterOptions, 1500);
+
+
+// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
+const toggleDesa = document.getElementById('togglePerDesa');
+const kecFilter = document.getElementById('filterKecamatan');
+
+function updateToggleDesaState() {
+  if (kecFilter.value === "" || kecFilter.value === null) {
+    toggleDesa.checked = false;
+    toggleDesa.disabled = true;
+  } else {
+    toggleDesa.disabled = false;
+  }
+}
+
+// Jalankan saat pertama kali halaman dimuat
+document.addEventListener('DOMContentLoaded', updateToggleDesaState);
+
+// Jalankan saat filter kecamatan berubah
+kecFilter.addEventListener('change', () => {
+  populateFilters();
+  applyFilters();
+  updateToggleDesaState();
+});
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
@@ -471,6 +546,7 @@ function fillFilterOptions() {
 
   // Kosongkan semua opsi lama dulu
   [kecSelect, desaSelect, statusSelect].forEach(sel => {
+  if (!sel) return;
     sel.innerHTML = '<option value="">Semua</option>';
   });
 
@@ -504,12 +580,36 @@ function fillFilterOptions() {
     const opt = document.createElement('option');
     opt.value = s;
     opt.textContent = s;
-    statusSelect.appendChild(opt);
+    if (statusSelect) statusSelect.appendChild(opt);
   });
 }
 
 // Jalankan setelah data Firebase selesai dimuat
 setTimeout(fillFilterOptions, 1500);
+
+
+// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
+const toggleDesa = document.getElementById('togglePerDesa');
+const kecFilter = document.getElementById('filterKecamatan');
+
+function updateToggleDesaState() {
+  if (kecFilter.value === "" || kecFilter.value === null) {
+    toggleDesa.checked = false;
+    toggleDesa.disabled = true;
+  } else {
+    toggleDesa.disabled = false;
+  }
+}
+
+// Jalankan saat pertama kali halaman dimuat
+document.addEventListener('DOMContentLoaded', updateToggleDesaState);
+
+// Jalankan saat filter kecamatan berubah
+kecFilter.addEventListener('change', () => {
+  populateFilters();
+  applyFilters();
+  updateToggleDesaState();
+});
 
 </script>
 
@@ -523,6 +623,7 @@ function fillFilterOptions() {
 
   // Kosongkan semua opsi lama dulu
   [kecSelect, desaSelect, statusSelect].forEach(sel => {
+  if (!sel) return;
     sel.innerHTML = '<option value="">Semua</option>';
   });
 
@@ -556,12 +657,36 @@ function fillFilterOptions() {
     const opt = document.createElement('option');
     opt.value = s;
     opt.textContent = s;
-    statusSelect.appendChild(opt);
+    if (statusSelect) statusSelect.appendChild(opt);
   });
 }
 
 // Jalankan setelah data Firebase selesai dimuat
 setTimeout(fillFilterOptions, 1500);
+
+
+// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
+const toggleDesa = document.getElementById('togglePerDesa');
+const kecFilter = document.getElementById('filterKecamatan');
+
+function updateToggleDesaState() {
+  if (kecFilter.value === "" || kecFilter.value === null) {
+    toggleDesa.checked = false;
+    toggleDesa.disabled = true;
+  } else {
+    toggleDesa.disabled = false;
+  }
+}
+
+// Jalankan saat pertama kali halaman dimuat
+document.addEventListener('DOMContentLoaded', updateToggleDesaState);
+
+// Jalankan saat filter kecamatan berubah
+kecFilter.addEventListener('change', () => {
+  populateFilters();
+  applyFilters();
+  updateToggleDesaState();
+});
 
 </script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js">
@@ -573,6 +698,7 @@ function fillFilterOptions() {
 
   // Kosongkan semua opsi lama dulu
   [kecSelect, desaSelect, statusSelect].forEach(sel => {
+  if (!sel) return;
     sel.innerHTML = '<option value="">Semua</option>';
   });
 
@@ -606,12 +732,36 @@ function fillFilterOptions() {
     const opt = document.createElement('option');
     opt.value = s;
     opt.textContent = s;
-    statusSelect.appendChild(opt);
+    if (statusSelect) statusSelect.appendChild(opt);
   });
 }
 
 // Jalankan setelah data Firebase selesai dimuat
 setTimeout(fillFilterOptions, 1500);
+
+
+// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
+const toggleDesa = document.getElementById('togglePerDesa');
+const kecFilter = document.getElementById('filterKecamatan');
+
+function updateToggleDesaState() {
+  if (kecFilter.value === "" || kecFilter.value === null) {
+    toggleDesa.checked = false;
+    toggleDesa.disabled = true;
+  } else {
+    toggleDesa.disabled = false;
+  }
+}
+
+// Jalankan saat pertama kali halaman dimuat
+document.addEventListener('DOMContentLoaded', updateToggleDesaState);
+
+// Jalankan saat filter kecamatan berubah
+kecFilter.addEventListener('change', () => {
+  populateFilters();
+  applyFilters();
+  updateToggleDesaState();
+});
 
 </script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js">
@@ -623,6 +773,7 @@ function fillFilterOptions() {
 
   // Kosongkan semua opsi lama dulu
   [kecSelect, desaSelect, statusSelect].forEach(sel => {
+  if (!sel) return;
     sel.innerHTML = '<option value="">Semua</option>';
   });
 
@@ -656,12 +807,36 @@ function fillFilterOptions() {
     const opt = document.createElement('option');
     opt.value = s;
     opt.textContent = s;
-    statusSelect.appendChild(opt);
+    if (statusSelect) statusSelect.appendChild(opt);
   });
 }
 
 // Jalankan setelah data Firebase selesai dimuat
 setTimeout(fillFilterOptions, 1500);
+
+
+// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
+const toggleDesa = document.getElementById('togglePerDesa');
+const kecFilter = document.getElementById('filterKecamatan');
+
+function updateToggleDesaState() {
+  if (kecFilter.value === "" || kecFilter.value === null) {
+    toggleDesa.checked = false;
+    toggleDesa.disabled = true;
+  } else {
+    toggleDesa.disabled = false;
+  }
+}
+
+// Jalankan saat pertama kali halaman dimuat
+document.addEventListener('DOMContentLoaded', updateToggleDesaState);
+
+// Jalankan saat filter kecamatan berubah
+kecFilter.addEventListener('change', () => {
+  populateFilters();
+  applyFilters();
+  updateToggleDesaState();
+});
 
 </script>
 
@@ -1073,6 +1248,7 @@ function fillFilterOptions() {
 
   // Kosongkan semua opsi lama dulu
   [kecSelect, desaSelect, statusSelect].forEach(sel => {
+  if (!sel) return;
     sel.innerHTML = '<option value="">Semua</option>';
   });
 
@@ -1106,12 +1282,36 @@ function fillFilterOptions() {
     const opt = document.createElement('option');
     opt.value = s;
     opt.textContent = s;
-    statusSelect.appendChild(opt);
+    if (statusSelect) statusSelect.appendChild(opt);
   });
 }
 
 // Jalankan setelah data Firebase selesai dimuat
 setTimeout(fillFilterOptions, 1500);
+
+
+// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
+const toggleDesa = document.getElementById('togglePerDesa');
+const kecFilter = document.getElementById('filterKecamatan');
+
+function updateToggleDesaState() {
+  if (kecFilter.value === "" || kecFilter.value === null) {
+    toggleDesa.checked = false;
+    toggleDesa.disabled = true;
+  } else {
+    toggleDesa.disabled = false;
+  }
+}
+
+// Jalankan saat pertama kali halaman dimuat
+document.addEventListener('DOMContentLoaded', updateToggleDesaState);
+
+// Jalankan saat filter kecamatan berubah
+kecFilter.addEventListener('change', () => {
+  populateFilters();
+  applyFilters();
+  updateToggleDesaState();
+});
 
 </script>
 </body>
