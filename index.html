@@ -563,9 +563,9 @@ function updateCharts(){
 
   filteredView.forEach(r=>{
     const kec = (r.Kecamatan||'(Belum)').trim() || '(Belum)';
-    const desa = (r.Desa||'(Belum)').trim() || '(Belum)';
+    const desa = (r.Desa);
     const kel = (r.Kelurahan||'').trim();
-    const key = perDesa ? `${kec} - ${desa}${kel? ' / ' + kel : ''}` : kec;
+    const key = perDesa ? `${desa}${kel? '' + kel : ''}` : kec;
     group[key] = (group[key] || 0) + 1;
 
     const stKepemilikan = (r.StatusKepemilikanTanah||'(Belum)').toString();
