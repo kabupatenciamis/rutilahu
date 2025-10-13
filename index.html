@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>SIRUCI — Dashboard Rutilahu</title>
 
-  <!-- CSS libs -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
 
   <style>
     :root {
@@ -43,9 +45,10 @@
     .kpi-card:nth-child(5){ background: linear-gradient(180deg,#fff3e0,#fff); border:1px solid rgba(249,115,22,0.06); }
     .kpi-card:nth-child(6){ background: linear-gradient(180deg,#fff0f6,#fff); border:1px solid rgba(244,63,94,0.06); }
 
-    /* Charts */
-    .charts-row { display:grid; grid-template-columns: 1fr 420px; gap:12px; margin-bottom:16px; }
-    @media (max-width:1200px){ .charts-row{ grid-template-columns:1fr; } }
+    /* Charts (MODIFIED) */
+    .charts-row { display:grid; grid-template-columns: 1fr; gap:12px; margin-bottom:16px; } /* Single column for bar chart */
+    .pie-charts-row { display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; margin-bottom:16px; } /* Two columns for pie charts */
+    @media (max-width:992px){ .pie-charts-row{ grid-template-columns: 1fr; } }
     .chart-card{ padding:12px; border-radius:12px; }
 
     /* Table responsive area */
@@ -156,6 +159,29 @@ table#dataTable tbody tr:hover {
       .popup-card { max-width:220px; font-size:0.88rem; }
       .charts-row .chart-card { padding:8px; }
     }
+    
+    /* NEW: Custom CSS for L.DivIcon pin shape (House marker) */
+    .custom-house-marker {
+      /* This is required to allow the DivIcon content (the rotated div) to control its own size and positioning */
+      border: none;
+      background: none;
+    }
+    
+    /* NEW: Custom styling for MarkerCluster circles (optional but good) */
+    .marker-cluster-small { background-color: rgba(107, 33, 168, 0.6); }
+    .marker-cluster-small div { background-color: rgba(107, 33, 168, 0.9); }
+
+    .marker-cluster-medium { background-color: rgba(34, 197, 94, 0.6); }
+    .marker-cluster-medium div { background-color: rgba(34, 197, 94, 0.9); }
+
+    .marker-cluster-large { background-color: rgba(249, 115, 22, 0.6); }
+    .marker-cluster-large div { background-color: rgba(249, 115, 22, 0.9); }
+
+    .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
+      color: white;
+      font-weight: 700;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
@@ -172,7 +198,6 @@ table#dataTable tbody tr:hover {
 
   <div class="mb-2" style="color:var(--main-purple);font-weight:600;">Data Tepat, Bantuan Cepat, Ciamis Hebat</div>
 
-  <!-- KPI (IDs preserved; label for totalDesa changed to "Desa / Kelurahan") -->
   <div class="kpi-grid" id="kpiGrid">
     <div class="kpi-card card">
       <div class="kpi-label">Total Rutilahu</div>
@@ -184,8 +209,7 @@ table#dataTable tbody tr:hover {
     </div>
     <div class="kpi-card card">
       <div class="kpi-label">Desa / Kelurahan</div>
-      <div class="kpi-value" id="totalDesa">0</div> <!-- ID tetap totalDesa -->
-    </div>
+      <div class="kpi-value" id="totalDesa">0</div> </div>
     <div class="kpi-card card">
       <div class="kpi-label">Total Penghuni</div>
       <div class="kpi-value" id="totalPenghuni">0</div>
@@ -200,7 +224,6 @@ table#dataTable tbody tr:hover {
     </div>
   </div>
 
-  <!-- Charts (bar + pie) -->
   <div class="charts-row">
     <div class="card chart-card">
       <div class="d-flex justify-content-between align-items-center mb-2">
@@ -214,14 +237,18 @@ table#dataTable tbody tr:hover {
       </div>
       <div style="height:320px;"><canvas id="barKecamatan"></canvas></div>
     </div>
-
+  </div>
+  
+  <div class="pie-charts-row">
     <div class="card chart-card">
       <div style="font-weight:700;margin-bottom:6px;">Pie Chart — Distribusi Status Kepemilikan Tanah</div>
-      <div style="height:320px;"><canvas id="pieKecukupan"></canvas></div>
-    </div>
+      <div style="height:320px;"><canvas id="pieKepemilikan"></canvas></div> </div>
+    
+    <div class="card chart-card">
+      <div style="font-weight:700;margin-bottom:6px;">Pie Chart — Distribusi Akses Sanitasi</div>
+      <div style="height:320px;"><canvas id="pieSanitasi"></canvas></div> </div>
   </div>
 
-  <!-- Table (with Kelurahan after Desa) -->
   <div class="card p-3 mb-3">
     <h5 class="card-title">Tabel Data</h5>
 
@@ -287,7 +314,6 @@ table#dataTable tbody tr:hover {
     </div>
   </div>
 
-  <!-- Map (full width, below table) -->
   <div class="card p-3 mb-3">
     <h5 class="card-title">Peta Sebaran Rutilahu</h5>
     <div class="text-muted" style="font-size:0.88rem;margin-bottom:8px;">Klik peta untuk menyimpan koordinat ke baris terpilih (Admin)</div>
@@ -297,7 +323,6 @@ table#dataTable tbody tr:hover {
   <footer style="text-align:center;color:var(--muted);margin-top:18px;">© 2025 Pemerintah Kabupaten Ciamis — Dinas Perumahan Rakyat, Kawasan Permukiman dan Lingkungan Hidup</footer>
 </div>
 
-<!-- Login overlay -->
 <div id="login-overlay" style="position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); z-index:2000;">
   <div class="card p-4" style="width:100%;max-width:420px;">
     <h5 class="mb-3">Login ke SIRUCI</h5>
@@ -311,534 +336,15 @@ table#dataTable tbody tr:hover {
   </div>
 </div>
 
-<!-- libs -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js">
-// 🔄 Isi otomatis dropdown filter dari data Firebase
-function fillFilterOptions() {
-  const kecSelect = document.getElementById('filterKecamatan');
-  const desaSelect = document.getElementById('filterDesa');
-  const statusSelect = document.getElementById('filterStatus');
-
-  // Kosongkan semua opsi lama dulu
-  [kecSelect, desaSelect, statusSelect].forEach(sel => {
-  if (!sel) return;
-    sel.innerHTML = '<option value="">Semua</option>';
-  });
-
-  // Buat set unik dari data
-  const kecamatanSet = new Set();
-  const desaKelSet = new Set();
-  const statusSet = new Set();
-
-  globalData.forEach(r => {
-    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
-    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
-    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
-  });
-
-  // Masukkan data ke dropdown
-  Array.from(kecamatanSet).sort().forEach(k => {
-    const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = k;
-    kecSelect.appendChild(opt);
-  });
-
-  Array.from(desaKelSet).sort().forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = d;
-    desaSelect.appendChild(opt);
-  });
-
-  Array.from(statusSet).sort().forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    if (statusSelect) statusSelect.appendChild(opt);
-  });
-}
-
-// Jalankan setelah data Firebase selesai dimuat
-setTimeout(fillFilterOptions, 1500);
-
-
-// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
-const toggleDesa = document.getElementById('togglePerDesa');
-const kecFilter = document.getElementById('filterKecamatan');
-
-function updateToggleDesaState() {
-  if (kecFilter.value === "" || kecFilter.value === null) {
-    toggleDesa.checked = false;
-    toggleDesa.disabled = true;
-  } else {
-    toggleDesa.disabled = false;
-  }
-}
-
-// Jalankan saat pertama kali halaman dimuat
-document.addEventListener('DOMContentLoaded', updateToggleDesaState);
-
-// Jalankan saat filter kecamatan berubah
-kecFilter.addEventListener('change', () => {
-  populateFilters();
-  applyFilters();
-  updateToggleDesaState();
-});
-
-</script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js">
-// 🔄 Isi otomatis dropdown filter dari data Firebase
-function fillFilterOptions() {
-  const kecSelect = document.getElementById('filterKecamatan');
-  const desaSelect = document.getElementById('filterDesa');
-  const statusSelect = document.getElementById('filterStatus');
-
-  // Kosongkan semua opsi lama dulu
-  [kecSelect, desaSelect, statusSelect].forEach(sel => {
-  if (!sel) return;
-    sel.innerHTML = '<option value="">Semua</option>';
-  });
-
-  // Buat set unik dari data
-  const kecamatanSet = new Set();
-  const desaKelSet = new Set();
-  const statusSet = new Set();
-
-  globalData.forEach(r => {
-    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
-    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
-    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
-  });
-
-  // Masukkan data ke dropdown
-  Array.from(kecamatanSet).sort().forEach(k => {
-    const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = k;
-    kecSelect.appendChild(opt);
-  });
-
-  Array.from(desaKelSet).sort().forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = d;
-    desaSelect.appendChild(opt);
-  });
-
-  Array.from(statusSet).sort().forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    if (statusSelect) statusSelect.appendChild(opt);
-  });
-}
-
-// Jalankan setelah data Firebase selesai dimuat
-setTimeout(fillFilterOptions, 1500);
-
-
-// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
-const toggleDesa = document.getElementById('togglePerDesa');
-const kecFilter = document.getElementById('filterKecamatan');
-
-function updateToggleDesaState() {
-  if (kecFilter.value === "" || kecFilter.value === null) {
-    toggleDesa.checked = false;
-    toggleDesa.disabled = true;
-  } else {
-    toggleDesa.disabled = false;
-  }
-}
-
-// Jalankan saat pertama kali halaman dimuat
-document.addEventListener('DOMContentLoaded', updateToggleDesaState);
-
-// Jalankan saat filter kecamatan berubah
-kecFilter.addEventListener('change', () => {
-  populateFilters();
-  applyFilters();
-  updateToggleDesaState();
-});
-
-</script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js">
-// 🔄 Isi otomatis dropdown filter dari data Firebase
-function fillFilterOptions() {
-  const kecSelect = document.getElementById('filterKecamatan');
-  const desaSelect = document.getElementById('filterDesa');
-  const statusSelect = document.getElementById('filterStatus');
-
-  // Kosongkan semua opsi lama dulu
-  [kecSelect, desaSelect, statusSelect].forEach(sel => {
-  if (!sel) return;
-    sel.innerHTML = '<option value="">Semua</option>';
-  });
-
-  // Buat set unik dari data
-  const kecamatanSet = new Set();
-  const desaKelSet = new Set();
-  const statusSet = new Set();
-
-  globalData.forEach(r => {
-    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
-    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
-    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
-  });
-
-  // Masukkan data ke dropdown
-  Array.from(kecamatanSet).sort().forEach(k => {
-    const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = k;
-    kecSelect.appendChild(opt);
-  });
-
-  Array.from(desaKelSet).sort().forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = d;
-    desaSelect.appendChild(opt);
-  });
-
-  Array.from(statusSet).sort().forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    if (statusSelect) statusSelect.appendChild(opt);
-  });
-}
-
-// Jalankan setelah data Firebase selesai dimuat
-setTimeout(fillFilterOptions, 1500);
-
-
-// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
-const toggleDesa = document.getElementById('togglePerDesa');
-const kecFilter = document.getElementById('filterKecamatan');
-
-function updateToggleDesaState() {
-  if (kecFilter.value === "" || kecFilter.value === null) {
-    toggleDesa.checked = false;
-    toggleDesa.disabled = true;
-  } else {
-    toggleDesa.disabled = false;
-  }
-}
-
-// Jalankan saat pertama kali halaman dimuat
-document.addEventListener('DOMContentLoaded', updateToggleDesaState);
-
-// Jalankan saat filter kecamatan berubah
-kecFilter.addEventListener('change', () => {
-  populateFilters();
-  applyFilters();
-  updateToggleDesaState();
-});
-
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
-// 🔄 Isi otomatis dropdown filter dari data Firebase
-function fillFilterOptions() {
-  const kecSelect = document.getElementById('filterKecamatan');
-  const desaSelect = document.getElementById('filterDesa');
-  const statusSelect = document.getElementById('filterStatus');
-
-  // Kosongkan semua opsi lama dulu
-  [kecSelect, desaSelect, statusSelect].forEach(sel => {
-  if (!sel) return;
-    sel.innerHTML = '<option value="">Semua</option>';
-  });
-
-  // Buat set unik dari data
-  const kecamatanSet = new Set();
-  const desaKelSet = new Set();
-  const statusSet = new Set();
-
-  globalData.forEach(r => {
-    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
-    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
-    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
-  });
-
-  // Masukkan data ke dropdown
-  Array.from(kecamatanSet).sort().forEach(k => {
-    const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = k;
-    kecSelect.appendChild(opt);
-  });
-
-  Array.from(desaKelSet).sort().forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = d;
-    desaSelect.appendChild(opt);
-  });
-
-  Array.from(statusSet).sort().forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    if (statusSelect) statusSelect.appendChild(opt);
-  });
-}
-
-// Jalankan setelah data Firebase selesai dimuat
-setTimeout(fillFilterOptions, 1500);
-
-
-// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
-const toggleDesa = document.getElementById('togglePerDesa');
-const kecFilter = document.getElementById('filterKecamatan');
-
-function updateToggleDesaState() {
-  if (kecFilter.value === "" || kecFilter.value === null) {
-    toggleDesa.checked = false;
-    toggleDesa.disabled = true;
-  } else {
-    toggleDesa.disabled = false;
-  }
-}
-
-// Jalankan saat pertama kali halaman dimuat
-document.addEventListener('DOMContentLoaded', updateToggleDesaState);
-
-// Jalankan saat filter kecamatan berubah
-kecFilter.addEventListener('change', () => {
-  populateFilters();
-  applyFilters();
-  updateToggleDesaState();
-});
-
-</script>
-
-<!-- Firebase compat -->
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js">
-// 🔄 Isi otomatis dropdown filter dari data Firebase
-function fillFilterOptions() {
-  const kecSelect = document.getElementById('filterKecamatan');
-  const desaSelect = document.getElementById('filterDesa');
-  const statusSelect = document.getElementById('filterStatus');
-
-  // Kosongkan semua opsi lama dulu
-  [kecSelect, desaSelect, statusSelect].forEach(sel => {
-  if (!sel) return;
-    sel.innerHTML = '<option value="">Semua</option>';
-  });
-
-  // Buat set unik dari data
-  const kecamatanSet = new Set();
-  const desaKelSet = new Set();
-  const statusSet = new Set();
-
-  globalData.forEach(r => {
-    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
-    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
-    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
-  });
-
-  // Masukkan data ke dropdown
-  Array.from(kecamatanSet).sort().forEach(k => {
-    const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = k;
-    kecSelect.appendChild(opt);
-  });
-
-  Array.from(desaKelSet).sort().forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = d;
-    desaSelect.appendChild(opt);
-  });
-
-  Array.from(statusSet).sort().forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    if (statusSelect) statusSelect.appendChild(opt);
-  });
-}
-
-// Jalankan setelah data Firebase selesai dimuat
-setTimeout(fillFilterOptions, 1500);
-
-
-// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
-const toggleDesa = document.getElementById('togglePerDesa');
-const kecFilter = document.getElementById('filterKecamatan');
-
-function updateToggleDesaState() {
-  if (kecFilter.value === "" || kecFilter.value === null) {
-    toggleDesa.checked = false;
-    toggleDesa.disabled = true;
-  } else {
-    toggleDesa.disabled = false;
-  }
-}
-
-// Jalankan saat pertama kali halaman dimuat
-document.addEventListener('DOMContentLoaded', updateToggleDesaState);
-
-// Jalankan saat filter kecamatan berubah
-kecFilter.addEventListener('change', () => {
-  populateFilters();
-  applyFilters();
-  updateToggleDesaState();
-});
-
-</script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js">
-// 🔄 Isi otomatis dropdown filter dari data Firebase
-function fillFilterOptions() {
-  const kecSelect = document.getElementById('filterKecamatan');
-  const desaSelect = document.getElementById('filterDesa');
-  const statusSelect = document.getElementById('filterStatus');
-
-  // Kosongkan semua opsi lama dulu
-  [kecSelect, desaSelect, statusSelect].forEach(sel => {
-  if (!sel) return;
-    sel.innerHTML = '<option value="">Semua</option>';
-  });
-
-  // Buat set unik dari data
-  const kecamatanSet = new Set();
-  const desaKelSet = new Set();
-  const statusSet = new Set();
-
-  globalData.forEach(r => {
-    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
-    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
-    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
-  });
-
-  // Masukkan data ke dropdown
-  Array.from(kecamatanSet).sort().forEach(k => {
-    const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = k;
-    kecSelect.appendChild(opt);
-  });
-
-  Array.from(desaKelSet).sort().forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = d;
-    desaSelect.appendChild(opt);
-  });
-
-  Array.from(statusSet).sort().forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    if (statusSelect) statusSelect.appendChild(opt);
-  });
-}
-
-// Jalankan setelah data Firebase selesai dimuat
-setTimeout(fillFilterOptions, 1500);
-
-
-// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
-const toggleDesa = document.getElementById('togglePerDesa');
-const kecFilter = document.getElementById('filterKecamatan');
-
-function updateToggleDesaState() {
-  if (kecFilter.value === "" || kecFilter.value === null) {
-    toggleDesa.checked = false;
-    toggleDesa.disabled = true;
-  } else {
-    toggleDesa.disabled = false;
-  }
-}
-
-// Jalankan saat pertama kali halaman dimuat
-document.addEventListener('DOMContentLoaded', updateToggleDesaState);
-
-// Jalankan saat filter kecamatan berubah
-kecFilter.addEventListener('change', () => {
-  populateFilters();
-  applyFilters();
-  updateToggleDesaState();
-});
-
-</script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js">
-// 🔄 Isi otomatis dropdown filter dari data Firebase
-function fillFilterOptions() {
-  const kecSelect = document.getElementById('filterKecamatan');
-  const desaSelect = document.getElementById('filterDesa');
-  const statusSelect = document.getElementById('filterStatus');
-
-  // Kosongkan semua opsi lama dulu
-  [kecSelect, desaSelect, statusSelect].forEach(sel => {
-  if (!sel) return;
-    sel.innerHTML = '<option value="">Semua</option>';
-  });
-
-  // Buat set unik dari data
-  const kecamatanSet = new Set();
-  const desaKelSet = new Set();
-  const statusSet = new Set();
-
-  globalData.forEach(r => {
-    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
-    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
-    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
-  });
-
-  // Masukkan data ke dropdown
-  Array.from(kecamatanSet).sort().forEach(k => {
-    const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = k;
-    kecSelect.appendChild(opt);
-  });
-
-  Array.from(desaKelSet).sort().forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = d;
-    desaSelect.appendChild(opt);
-  });
-
-  Array.from(statusSet).sort().forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    if (statusSelect) statusSelect.appendChild(opt);
-  });
-}
-
-// Jalankan setelah data Firebase selesai dimuat
-setTimeout(fillFilterOptions, 1500);
-
-
-// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
-const toggleDesa = document.getElementById('togglePerDesa');
-const kecFilter = document.getElementById('filterKecamatan');
-
-function updateToggleDesaState() {
-  if (kecFilter.value === "" || kecFilter.value === null) {
-    toggleDesa.checked = false;
-    toggleDesa.disabled = true;
-  } else {
-    toggleDesa.disabled = false;
-  }
-}
-
-// Jalankan saat pertama kali halaman dimuat
-document.addEventListener('DOMContentLoaded', updateToggleDesaState);
-
-// Jalankan saat filter kecamatan berubah
-kecFilter.addEventListener('change', () => {
-  populateFilters();
-  applyFilters();
-  updateToggleDesaState();
-});
-
-</script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
 <script>
 /* =========================
@@ -848,8 +354,9 @@ const LS_SORT = 'rutilahu_sort_v1';
 let globalData = [];
 let filteredView = [];
 let selectedGlobalIndex = null;
-let chartKec = null, chartPie = null;
-let markersLayer;
+let chartKec = null, chartKepemilikan = null, chartSanitasi = null;
+// MODIFIED: markersLayer diganti menjadi markerClusterGroup
+let markerClusterGroup;
 let currentPage = 1;
 let pageSize = parseInt(localStorage.getItem('rutilahu_page_size')||'10',10);
 let userRole = null;
@@ -885,16 +392,59 @@ function canonicalDisplay(name){
   return n.split(' ').map(w=> w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
 }
 
+// =========================================================================
+// Fix for missing Leaflet icons:
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png',
+});
+
+/* House Icon Generator - L.DivIcon for robust rendering */
+function createHouseIconHex(hexColor = '#6b21a8') {
+  const divContent = `
+    <div style="
+      background-color: ${hexColor};
+      width: 30px;
+      height: 30px;
+      /* Custom pin shape: rotated square with 3 rounded corners */
+      border-radius: 50% 50% 50% 0; 
+      transform: rotate(-45deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      border: 2px solid white;
+    ">
+      <i class="fa-solid fa-house-chimney" style="
+        color: white;
+        font-size: 14px;
+        /* Rotate back the icon so it appears straight inside the rotated pin */
+        transform: rotate(45deg);
+      "></i>
+    </div>
+  `;
+
+  return L.divIcon({
+    className: 'custom-house-marker', // Class added for custom CSS if needed
+    html: divContent,
+    iconSize: [30, 30],
+    iconAnchor: [15, 30], // Anchor at the bottom tip of the rotated square/pin (half width, full height)
+    popupAnchor: [0, -25]
+  });
+}
+// =========================================================================
+
 /* Map init */
 const map = L.map('map').setView([-7.33,108.33],10);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution: '© OpenStreetMap' }).addTo(map);
-markersLayer = L.layerGroup().addTo(map);
 
-/* House SVG icon generator */
-function createHouseIconHex(hexColor='#6b21a8'){
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24"><path fill="${hexColor}" d="M12 3l8 7h-3v8h-4v-5H11v5H7v-8H4z"/></svg>`;
-  return L.icon({ iconUrl: 'data:image/svg+xml;utf8,' + encodeURIComponent(svg), iconSize:[36,36], iconAnchor:[18,36], popupAnchor:[0,-30] });
-}
+// MODIFIED: Inisialisasi Marker Cluster Group
+markerClusterGroup = L.markerClusterGroup({
+    maxClusterRadius: 80, // Mengurangi radius untuk mengelompokkan lebih banyak marker
+    chunkedLoading: true // Memuat marker secara bertahap untuk performa yang lebih baik
+}).addTo(map);
+
 
 /* status color */
 function statusColor(status){
@@ -932,30 +482,38 @@ function buildPopupHTML(r){
 
 /* Update map markers */
 function updateMap(){
-  markersLayer.clearLayers();
+  // MODIFIED: Hapus semua marker dari cluster group
+  markerClusterGroup.clearLayers();
+  
+  const markers = [];
+  
   filteredView.forEach(r=>{
     if(r.Latitude != null && r.Longitude != null){
       const st = statusColor(r.KecukupanRuang || '');
       const icon = createHouseIconHex(st.hex);
       const m = L.marker([r.Latitude, r.Longitude], {icon});
       m.bindPopup(buildPopupHTML(r), {
-  className: 'custom-popup',
-  offset: L.point(0, -20),   // posisi popup sedikit di atas ikon rumah
-  maxWidth: 280,
-  closeButton: true,
-  autoPanPaddingTopLeft: L.point(40, 40),
-  autoPanPaddingBottomRight: L.point(40, 40)
-});
-      markersLayer.addLayer(m);
+        className: 'custom-popup',
+        offset: L.point(0, -20),
+        maxWidth: 280,
+        closeButton: true,
+        autoPanPaddingTopLeft: L.point(40, 40),
+        autoPanPaddingBottomRight: L.point(40, 40)
+      });
+      markers.push(m);
     }
   });
+  
+  // MODIFIED: Tambahkan semua marker sekaligus ke cluster group
+  markerClusterGroup.addLayers(markers);
 }
 
 /* Charts: perDesa uses "Kecamatan - Desa / Kelurahan" as label to keep uniqueness */
 function updateCharts(){
   const perDesa = document.getElementById('togglePerDesa')?.checked;
   const group = {};
-  const pie = {};
+  const pieKepemilikan = {}; // Renamed
+  const pieSanitasi = {}; // New
 
   filteredView.forEach(r=>{
     const kec = (r.Kecamatan||'(Belum)').trim() || '(Belum)';
@@ -964,18 +522,25 @@ function updateCharts(){
     const key = perDesa ? `${kec} - ${desa}${kel? ' / ' + kel : ''}` : kec;
     group[key] = (group[key] || 0) + 1;
 
-    const st = (r.StatusKepemilikanTanah||'(Belum)').toString();
-    pie[st] = (pie[st] || 0) + 1;
+    const stKepemilikan = (r.StatusKepemilikanTanah||'(Belum)').toString(); // Renamed
+    pieKepemilikan[stKepemilikan] = (pieKepemilikan[stKepemilikan] || 0) + 1; // Renamed
+
+    const stSanitasi = (r.AksesSanitasi||'(Belum)').toString(); // New
+    pieSanitasi[stSanitasi] = (pieSanitasi[stSanitasi] || 0) + 1; // New
   });
 
   const labels = Object.keys(group).sort((a,b)=> group[b]-group[a]);
   const values = labels.map(k=> group[k]);
 
-  const pieLabels = Object.keys(pie);
-  const pieValues = pieLabels.map(k=> pie[k]);
+  const pieKepemilikanLabels = Object.keys(pieKepemilikan);
+  const pieKepemilikanValues = pieKepemilikanLabels.map(k=> pieKepemilikan[k]);
+
+  const pieSanitasiLabels = Object.keys(pieSanitasi);
+  const pieSanitasiValues = pieSanitasiLabels.map(k=> pieSanitasi[k]);
 
   if(chartKec) chartKec.destroy();
-  if(chartPie) chartPie.destroy();
+  if(chartKepemilikan) chartKepemilikan.destroy(); // Renamed
+  if(chartSanitasi) chartSanitasi.destroy(); // New
 
   const ctxK = document.getElementById('barKecamatan').getContext('2d');
   chartKec = new Chart(ctxK, {
@@ -987,10 +552,17 @@ function updateCharts(){
     }
   });
 
-  const ctxP = document.getElementById('pieKecukupan').getContext('2d');
-  chartPie = new Chart(ctxP, {
+  const ctxP_Kepemilikan = document.getElementById('pieKepemilikan').getContext('2d'); // Renamed
+  chartKepemilikan = new Chart(ctxP_Kepemilikan, { // Renamed
     type:'pie',
-    data:{ labels: pieLabels, datasets:[{ data: pieValues, backgroundColor:['#6b8df2','#22c55e','#f59e0b','#ef4444','#a78bfa','#94a3b8'] }] },
+    data:{ labels: pieKepemilikanLabels, datasets:[{ data: pieKepemilikanValues, backgroundColor:['#6b8df2','#22c55e','#f59e0b','#ef4444','#a78bfa','#94a3b8'] }] },
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' }}, animation:{ duration:700 } }
+  });
+
+  const ctxP_Sanitasi = document.getElementById('pieSanitasi').getContext('2d'); // New
+  chartSanitasi = new Chart(ctxP_Sanitasi, { // New
+    type:'pie',
+    data:{ labels: pieSanitasiLabels, datasets:[{ data: pieSanitasiValues, backgroundColor:['#16a34a','#f59e0b','#dc2626','#6b21a8','#94a3b8'] }] },
     options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' }}, animation:{ duration:700 } }
   });
 }
@@ -1043,7 +615,7 @@ function populateFilters(){
 let sortConfig = { key:null, asc:true };
 function applySavedSort(){ const s = localStorage.getItem(LS_SORT); if(s) try{ sortConfig = JSON.parse(s); }catch(e){} }
 function sortFilteredViewIfNeeded(){ if(!sortConfig.key) return; filteredView.sort((a,b)=>{ const va = (''+(a[sortConfig.key]||'')).toLowerCase(); const vb = (''+(b[sortConfig.key]||'')).toLowerCase(); if(va<vb) return sortConfig.asc? -1:1; if(va>vb) return sortConfig.asc?1:-1; return 0; }); }
-function setHeaderSortUI(){ document.querySelectorAll("#dataTable thead th.sortable").forEach(th=>th.classList.remove('asc','desc')); const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","Kelurahan","LuasRumah","JumlahPenghuni","KecukupanRuang","Latitude","Longitude"]; const idx = keyMap.indexOf(sortConfig.key); if(idx>=0){ const ths = document.querySelectorAll("#dataTable thead th.sortable"); if(ths[idx]) ths[idx].classList.add(sortConfig.asc?'asc':'desc'); } }
+function setHeaderSortUI(){ document.querySelectorAll("#dataTable thead th.sortable").forEach(th=>th.classList.remove('asc','desc')); const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","Kelurahan","LuasRumah","JumlahPenghuni","KecukupanRuang","StatusKepemilikanTanah","AksesSanitasi","Latitude","Longitude"]; const idx = keyMap.indexOf(sortConfig.key); if(idx>=0){ const ths = document.querySelectorAll("#dataTable thead th.sortable"); if(ths[idx]) ths[idx].classList.add(sortConfig.asc?'asc':'desc'); } }
 function sortByKey(key, th){ if(sortConfig.key===key) sortConfig.asc=!sortConfig.asc; else { sortConfig.key=key; sortConfig.asc=true; } sortFilteredViewIfNeeded(); currentPage=1; renderTable(); setHeaderSortUI(); localStorage.setItem(LS_SORT, JSON.stringify(sortConfig)); }
 
 /* Table rendering */
@@ -1067,8 +639,8 @@ function renderTable(){
       <td contenteditable="${isAdmin}">${r.LuasRumah ?? ''}</td>
       <td contenteditable="${isAdmin}">${r.JumlahPenghuni ?? ''}</td>
       <td contenteditable="${isAdmin}">${escapeHtml(r.KecukupanRuang ?? '')}</td>
-<td contenteditable="${isAdmin}">${escapeHtml(r.StatusKepemilikanTanah ?? '')}</td>
-<td contenteditable="${isAdmin}">${escapeHtml(r.AksesSanitasi ?? '')}</td>
+      <td contenteditable="${isAdmin}">${escapeHtml(r.StatusKepemilikanTanah ?? '')}</td>
+      <td contenteditable="${isAdmin}">${escapeHtml(r.AksesSanitasi ?? '')}</td>
       <td contenteditable="${isAdmin}">${r.Latitude ?? ''}</td>
       <td contenteditable="${isAdmin}">${r.Longitude ?? ''}</td>
       <td>
@@ -1181,68 +753,21 @@ function handleFile(ev){ const f = ev.target.files[0]; if(!f) return; const read
     LuasRumah: safeFloat(r.LuasRumah||r.luas)||0,
     JumlahPenghuni: parseInt(r.JumlahPenghuni||r.jumlah)||0,
     KecukupanRuang: (r.KecukupanRuang||'').toString(),
+    StatusKepemilikanTanah: (r.StatusKepemilikanTanah||r.statusKepemilikanTanah||'').toString(), // Added fallback
+    AksesSanitasi: (r.AksesSanitasi||r.aksesSanitasi||'').toString(), // Added fallback
     Latitude: safeFloat(r.Latitude||r.lat),
     Longitude: safeFloat(r.Longitude||r.lng)
   }));
   populateFilters(); applyFilters(); saveToFirebase(); }; reader.readAsArrayBuffer(f); }
 
-function exportExcel(){
-  const out = globalData.map(r => ({
-    Nama: r.Nama || '',
-    NoKK: r.NoKK || '',
-    NoNIK: r.NoNIK || '',
-    Alamat: r.Alamat || '',
-    Kecamatan: r.Kecamatan || '',
-    Desa: r.Desa || '',
-    Kelurahan: r.Kelurahan || '',
-    LuasRumah: r.LuasRumah || 0,
-    JumlahPenghuni: r.JumlahPenghuni || 0,
-    KecukupanRuang: r.KecukupanRuang || '',
-    StatusKepemilikanTanah: r.StatusKepemilikanTanah || '',
-    AksesSanitasi: r.AksesSanitasi || '',
-    Latitude: r.Latitude || '',
-    Longitude: r.Longitude || ''
-  }));
-  const ws = XLSX.utils.json_to_sheet(out);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Rutilahu');
-  XLSX.writeFile(wb, 'Rutilahu_Ciamis_export.xlsx');
-}
-document.getElementById('downloadTemplate').addEventListener('click', ()=>{
-  const headers = [{
-    Nama: 'Contoh',
-    NoKK: '3201...',
-    NoNIK: '3510...',
-    Alamat: 'Jl. Contoh',
-    Kecamatan: 'Contoh Kec',
-    Desa: 'Contoh Desa',
-    Kelurahan: 'Contoh Kel',
-    LuasRumah: 36,
-    JumlahPenghuni: 4,
-    KecukupanRuang: 'Cukup',
-    StatusKepemilikanTanah: 'Milik Sendiri',
-    AksesSanitasi: 'Ada',
-    Latitude: -7.333,
-    Longitude: 108.333
-  }];
-  const ws = XLSX.utils.json_to_sheet(headers, {
-    header: [
-      'Nama','NoKK','NoNIK','Alamat','Kecamatan','Desa','Kelurahan',
-      'LuasRumah','JumlahPenghuni','KecukupanRuang',
-      'StatusKepemilikanTanah','AksesSanitasi',
-      'Latitude','Longitude'
-    ]
-  });
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Template');
-  XLSX.writeFile(wb, 'Template_Rutilahu.xlsx');
-});
+function exportExcel(){ const out = globalData.map(r=> ({ Nama:r.Nama||'', NoKK:r.NoKK||'', NoNIK:r.NoNIK||'', Alamat:r.Alamat||'', Kecamatan:r.Kecamatan||'', Desa:r.Desa||'', Kelurahan:r.Kelurahan||'', LuasRumah:r.LuasRumah||0, JumlahPenghuni:r.JumlahPenghuni||0, KecukupanRuang:r.KecukupanRuang||'', StatusKepemilikanTanah:r.StatusKepemilikanTanah||'', AksesSanitasi:r.AksesSanitasi||'', Latitude:r.Latitude||'', Longitude:r.Longitude||'' })); const ws = XLSX.utils.json_to_sheet(out); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Rutilahu'); XLSX.writeFile(wb, 'Rutilahu_Ciamis_export.xlsx'); }
+document.getElementById('downloadTemplate').addEventListener('click', ()=>{ const headers = [{Nama:'Contoh',NoKK:'3201...',NoNIK:'3510...',Alamat:'Jl. Contoh',Kecamatan:'Contoh Kec',Desa:'Contoh Desa',Kelurahan:'Contoh Kel',LuasRumah:36,JumlahPenghuni:4,KecukupanRuang:'Cukup',StatusKepemilikanTanah:'Milik Sendiri',AksesSanitasi:'Baik',Latitude:-7.333,Longitude:108.333}]; const ws = XLSX.utils.json_to_sheet(headers,{header:['Nama','NoKK','NoNIK','Alamat','Kecamatan','Desa','Kelurahan','LuasRumah','JumlahPenghuni','KecukupanRuang','StatusKepemilikanTanah','AksesSanitasi','Latitude','Longitude']}); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Template'); XLSX.writeFile(wb, 'Template_Rutilahu.xlsx'); });
 
 document.getElementById('clearData').addEventListener('click', ()=>{ if(userRole!=='admin') return; if(!confirm('Kosongkan semua data?')) return; globalData=[]; applyFilters(); populateFilters(); saveToFirebase(); });
 
 /* Firebase sync */
 function saveToFirebase(){ if(userRole==='admin'){ db.ref('rutilahu_data').set(globalData).catch(e=>console.error('Firebase save failed',e)); } }
-function loadFromFirebase(){ db.ref('rutilahu_data').on('value', snapshot=>{ const data = snapshot.val(); if(Array.isArray(data)) globalData = data.map(r=>({ Nama:r.Nama||'', NoKK:r.NoKK||'', NoNIK:r.NoNIK||'', Alamat:r.Alamat||'', Kecamatan:r.Kecamatan||'', Desa:r.Desa||'', Kelurahan:r.Kelurahan||'', LuasRumah: safeFloat(r.LuasRumah)||0, JumlahPenghuni: parseInt(r.JumlahPenghuni)||0, KecukupanRuang: r.KecukupanRuang||'', Latitude: safeFloat(r.Latitude), Longitude: safeFloat(r.Longitude) })); else globalData=[]; populateFilters(); applyFilters(); }, err=> console.error('Firebase load error',err)); }
+function loadFromFirebase(){ db.ref('rutilahu_data').on('value', snapshot=>{ const data = snapshot.val(); if(Array.isArray(data)) globalData = data.map(r=>({ Nama:r.Nama||'', NoKK:r.NoKK||'', NoNIK:r.NoNIK||'', Alamat:r.Alamat||'', Kecamatan:r.Kecamatan||'', Desa:r.Desa||'', Kelurahan:r.Kelurahan||'', LuasRumah: safeFloat(r.LuasRumah)||0, JumlahPenghuni: parseInt(r.JumlahPenghuni)||0, KecukupanRuang: r.KecukupanRuang||'', StatusKepemilikanTanah: r.StatusKepemilikanTanah||'', AksesSanitasi: r.AksesSanitasi||'', Latitude: safeFloat(r.Latitude), Longitude: safeFloat(r.Longitude) })); else globalData=[]; populateFilters(); applyFilters(); }, err=> console.error('Firebase load error',err)); }
 
 /* Auth & UI */
 const adminEmail = 'admin@ciamis.go.id';
@@ -1277,7 +802,7 @@ document.getElementById('togglePerDesa')?.addEventListener('change', updateChart
 
 /* Sortable headers */
 document.addEventListener('DOMContentLoaded', ()=>{
-  const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","Kelurahan","LuasRumah","JumlahPenghuni","KecukupanRuang","Latitude","Longitude"];
+  const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","Kelurahan","LuasRumah","JumlahPenghuni","KecukupanRuang","StatusKepemilikanTanah","AksesSanitasi","Latitude","Longitude"];
   document.querySelectorAll("#dataTable thead th.sortable").forEach((th, idx)=>{
     if(idx < keyMap.length){ th.style.cursor='pointer'; th.title='Klik untuk urutkan'; th.addEventListener('click', ()=> sortByKey(keyMap[idx], th)); }
   });
@@ -1288,80 +813,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 function refreshAll(){ populateFilters(); applyFilters(); updateCharts(); updateMap(); updateKPI(); }
 
 /* End */
-
-// 🔄 Isi otomatis dropdown filter dari data Firebase
-function fillFilterOptions() {
-  const kecSelect = document.getElementById('filterKecamatan');
-  const desaSelect = document.getElementById('filterDesa');
-  const statusSelect = document.getElementById('filterStatus');
-
-  // Kosongkan semua opsi lama dulu
-  [kecSelect, desaSelect, statusSelect].forEach(sel => {
-  if (!sel) return;
-    sel.innerHTML = '<option value="">Semua</option>';
-  });
-
-  // Buat set unik dari data
-  const kecamatanSet = new Set();
-  const desaKelSet = new Set();
-  const statusSet = new Set();
-
-  globalData.forEach(r => {
-    if (r.Kecamatan) kecamatanSet.add(r.Kecamatan.trim());
-    if (r.Desa || r.Kelurahan) desaKelSet.add((r.Desa || r.Kelurahan).trim());
-    if (r.KecukupanRuang) statusSet.add(r.KecukupanRuang.trim());
-  });
-
-  // Masukkan data ke dropdown
-  Array.from(kecamatanSet).sort().forEach(k => {
-    const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = k;
-    kecSelect.appendChild(opt);
-  });
-
-  Array.from(desaKelSet).sort().forEach(d => {
-    const opt = document.createElement('option');
-    opt.value = d;
-    opt.textContent = d;
-    desaSelect.appendChild(opt);
-  });
-
-  Array.from(statusSet).sort().forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    if (statusSelect) statusSelect.appendChild(opt);
-  });
-}
-
-// Jalankan setelah data Firebase selesai dimuat
-setTimeout(fillFilterOptions, 1500);
-
-
-// === Toggle checkbox Per Desa tergantung pilihan kecamatan ===
-const toggleDesa = document.getElementById('togglePerDesa');
-const kecFilter = document.getElementById('filterKecamatan');
-
-function updateToggleDesaState() {
-  if (kecFilter.value === "" || kecFilter.value === null) {
-    toggleDesa.checked = false;
-    toggleDesa.disabled = true;
-  } else {
-    toggleDesa.disabled = false;
-  }
-}
-
-// Jalankan saat pertama kali halaman dimuat
-document.addEventListener('DOMContentLoaded', updateToggleDesaState);
-
-// Jalankan saat filter kecamatan berubah
-kecFilter.addEventListener('change', () => {
-  populateFilters();
-  applyFilters();
-  updateToggleDesaState();
-});
-
 </script>
+
 </body>
 </html>
