@@ -261,8 +261,8 @@ table#dataTable tbody tr:hover {
             <th class="sortable">Luas Rumah</th>
             <th class="sortable">Jml Penghuni</th>
             <th class="sortable">Kecukupan Ruang</th>
-<th class="sortable">Status Kepemilikan Tanah</th>
-<th class="sortable">Akses Sanitasi</th>
+            <th class="sortable">Status Kepemilikan Tanah</th>
+            <th class="sortable">Akses Sanitasi</th>
             <th class="sortable">Latitude</th>
             <th class="sortable">Longitude</th>
             <th>Aksi</th>
@@ -1109,8 +1109,8 @@ function saveRow(btn){ if(userRole!=='admin') return; const tr = btn.closest('tr
     KecukupanRuang: cells[9].innerText.trim() || '',
     StatusKepemilikanTanah: cells[10].innerText.trim() || '',
     AksesSanitasi: cells[11].innerText.trim() || '',
-    Latitude: safeFloat(cells[10].innerText),
-    Longitude: safeFloat(cells[11].innerText)
+    Latitude: safeFloat(cells[12].innerText),
+    Longitude: safeFloat(cells[13].innerText)
   };
   populateFilters(); applyFilters(); saveToFirebase();
 }
@@ -1186,8 +1186,57 @@ function handleFile(ev){ const f = ev.target.files[0]; if(!f) return; const read
   }));
   populateFilters(); applyFilters(); saveToFirebase(); }; reader.readAsArrayBuffer(f); }
 
-function exportExcel(){ const out = globalData.map(r=> ({ Nama:r.Nama||'', NoKK:r.NoKK||'', NoNIK:r.NoNIK||'', Alamat:r.Alamat||'', Kecamatan:r.Kecamatan||'', Desa:r.Desa||'', Kelurahan:r.Kelurahan||'', LuasRumah:r.LuasRumah||0, JumlahPenghuni:r.JumlahPenghuni||0, KecukupanRuang:r.KecukupanRuang||'', Latitude:r.Latitude||'', Longitude:r.Longitude||'' })); const ws = XLSX.utils.json_to_sheet(out); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Rutilahu'); XLSX.writeFile(wb, 'Rutilahu_Ciamis_export.xlsx'); }
-document.getElementById('downloadTemplate').addEventListener('click', ()=>{ const headers = [{Nama:'Contoh',NoKK:'3201...',NoNIK:'3510...',Alamat:'Jl. Contoh',Kecamatan:'Contoh Kec',Desa:'Contoh Desa',Kelurahan:'Contoh Kel',LuasRumah:36,JumlahPenghuni:4,KecukupanRuang:'Cukup',Latitude:-7.333,Longitude:108.333}]; const ws = XLSX.utils.json_to_sheet(headers,{header:['Nama','NoKK','NoNIK','Alamat','Kecamatan','Desa','Kelurahan','LuasRumah','JumlahPenghuni','KecukupanRuang','Latitude','Longitude']}); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Template'); XLSX.writeFile(wb, 'Template_Rutilahu.xlsx'); });
+function exportExcel(){
+  const out = globalData.map(r => ({
+    Nama: r.Nama || '',
+    NoKK: r.NoKK || '',
+    NoNIK: r.NoNIK || '',
+    Alamat: r.Alamat || '',
+    Kecamatan: r.Kecamatan || '',
+    Desa: r.Desa || '',
+    Kelurahan: r.Kelurahan || '',
+    LuasRumah: r.LuasRumah || 0,
+    JumlahPenghuni: r.JumlahPenghuni || 0,
+    KecukupanRuang: r.KecukupanRuang || '',
+    StatusKepemilikanTanah: r.StatusKepemilikanTanah || '',
+    AksesSanitasi: r.AksesSanitasi || '',
+    Latitude: r.Latitude || '',
+    Longitude: r.Longitude || ''
+  }));
+  const ws = XLSX.utils.json_to_sheet(out);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Rutilahu');
+  XLSX.writeFile(wb, 'Rutilahu_Ciamis_export.xlsx');
+}
+document.getElementById('downloadTemplate').addEventListener('click', ()=>{
+  const headers = [{
+    Nama: 'Contoh',
+    NoKK: '3201...',
+    NoNIK: '3510...',
+    Alamat: 'Jl. Contoh',
+    Kecamatan: 'Contoh Kec',
+    Desa: 'Contoh Desa',
+    Kelurahan: 'Contoh Kel',
+    LuasRumah: 36,
+    JumlahPenghuni: 4,
+    KecukupanRuang: 'Cukup',
+    StatusKepemilikanTanah: 'Milik Sendiri',
+    AksesSanitasi: 'Ada',
+    Latitude: -7.333,
+    Longitude: 108.333
+  }];
+  const ws = XLSX.utils.json_to_sheet(headers, {
+    header: [
+      'Nama','NoKK','NoNIK','Alamat','Kecamatan','Desa','Kelurahan',
+      'LuasRumah','JumlahPenghuni','KecukupanRuang',
+      'StatusKepemilikanTanah','AksesSanitasi',
+      'Latitude','Longitude'
+    ]
+  });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Template');
+  XLSX.writeFile(wb, 'Template_Rutilahu.xlsx');
+});
 
 document.getElementById('clearData').addEventListener('click', ()=>{ if(userRole!=='admin') return; if(!confirm('Kosongkan semua data?')) return; globalData=[]; applyFilters(); populateFilters(); saveToFirebase(); });
 
