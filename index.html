@@ -568,7 +568,11 @@ function updateCharts(){
     const key = perDesa ? `${desa}${kel? '' + kel : ''}` : kec;
     group[key] = (group[key] || 0) + 1;
 
-    const stKepemilikan = (r.StatusKepemilikanTanah||'(Belum)').toString();
+    // Perbaikan: Hanya melakukan trim()
+    const stKepemilikanRaw = (r.StatusKepemilikanTanah||'(Belum)').toString();
+    // Menghilangkan spasi ekstra di awal/akhir untuk pengelompokan, 
+    // namun mempertahankan kapitalisasi yang ada.
+    const stKepemilikan = stKepemilikanRaw.trim(); 
     pieKepemilikan[stKepemilikan] = (pieKepemilikan[stKepemilikan] || 0) + 1;
 
     const stSanitasi = (r.AksesSanitasi||'(Belum)').toString();
