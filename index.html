@@ -146,6 +146,46 @@
         z-index: 1500; display: none; align-items: center; transition: opacity 0.3s ease;
     }
 
+    /* --- Responsivitas Tinggi Elemen untuk Perangkat Mobile (Modifikasi Tambahan) --- */
+    @media (max-width: 768px) {
+      /* Mengurangi tinggi Peta agar tidak terlalu memakan layar di HP */
+      #map {
+        height: 350px !important; 
+      }
+
+      /* Mengurangi tinggi Container Doughnut Chart */
+      .doughnut-chart-container {
+          height: 280px !important; /* Nilai yang lebih pendek */
+      }
+
+      /* Menyesuaikan jarak padding dan margin agar lebih padat di layar kecil */
+      .sidebar {
+          padding: 15px;
+      }
+      .content-area {
+          padding: 15px; 
+      }
+      .charts-row, .pie-charts-row {
+          margin-bottom: 16px; 
+      }
+
+      /* Judul dan KPI agar lebih ringkas */
+      .kpi-value {
+        font-size: 1.5rem;
+      }
+      .kpi-label {
+        font-size: 0.8rem;
+      }
+    }
+
+    /* Penyesuaian untuk tablet/layar menengah (Max-width 1200px) */
+    @media (max-width: 1200px) and (min-width: 993px) {
+      #map {
+        height: 400px; /* Sedikit lebih pendek dari 500px */
+      }
+    }
+    /* --- Akhir Modifikasi Tambahan --- */
+
   </style>
 </head>
 <body>
