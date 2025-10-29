@@ -146,46 +146,6 @@
         z-index: 1500; display: none; align-items: center; transition: opacity 0.3s ease;
     }
 
-    /* --- Responsivitas Tinggi Elemen untuk Perangkat Mobile (Modifikasi Tambahan) --- */
-    @media (max-width: 768px) {
-      /* Mengurangi tinggi Peta agar tidak terlalu memakan layar di HP */
-      #map {
-        height: 350px !important; 
-      }
-
-      /* Mengurangi tinggi Container Doughnut Chart */
-      .doughnut-chart-container {
-          height: 280px !important; /* Nilai yang lebih pendek */
-      }
-
-      /* Menyesuaikan jarak padding dan margin agar lebih padat di layar kecil */
-      .sidebar {
-          padding: 15px;
-      }
-      .content-area {
-          padding: 15px; 
-      }
-      .charts-row, .pie-charts-row {
-          margin-bottom: 16px; 
-      }
-
-      /* Judul dan KPI agar lebih ringkas */
-      .kpi-value {
-        font-size: 1.5rem;
-      }
-      .kpi-label {
-        font-size: 0.8rem;
-      }
-    }
-
-    /* Penyesuaian untuk tablet/layar menengah (Max-width 1200px) */
-    @media (max-width: 1200px) and (min-width: 993px) {
-      #map {
-        height: 400px; /* Sedikit lebih pendek dari 500px */
-      }
-    }
-    /* --- Akhir Modifikasi Tambahan --- */
-
   </style>
 </head>
 <body>
@@ -434,11 +394,6 @@ let markerClusterGroup;
 let currentPage = 1;
 let pageSize = parseInt(localStorage.getItem('rutilahu_page_size')||'10',10);
 let userRole = null;
-// >> LOGIKA BARU UNTUK ZOOM DAN GANTI TAB
-let lastClickedLocation = null; 
-const CIAMIS_CENTER = [-7.33, 108.33];
-const DEFAULT_ZOOM = 10;
-// END LOGIKA BARU
 
 const firebaseConfig = {
   apiKey: "AIzaSyCSdubntMjMsOFIHNl-z9f6GTnBEJsz8qk",
@@ -479,82 +434,6 @@ function normalizeNameRaw(name){
     .replace(/\s+/g,' ')
     .trim();
 }
-
-/**
- * Pindah ke tab Peta Sebaran dan mengaktifkan link di sidebar.
- */
-function switchToMapTab() {
-    const mapLink = document.querySelector('.sidebar-link[data-content="peta-sebaran"]');
-
-    if (mapLink) {
-        // Hapus status 'active' dari semua link
-        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
-        
-        // Tambahkan status 'active' ke link Peta Sebaran
-        mapLink.classList.add('active');
-        
-        // Panggil showContentGroup untuk menampilkan konten peta
-        showContentGroup('peta-sebaran');
-    }
-}
-
-/* ============================================== */
-/* FUNGSI BARU UNTUK ZOOM DAN POPUP 5 DETIK (DIMODIFIKASI) */
-/* ============================================== */
-
-/**
- * FUNGSI BARU (dimodifikasi): Menyimpan lokasi yang diklik DAN langsung mengganti tab.
- * @param {number} dataIdx - Index data di globalData (r._idx)
- */
-function zoomToLocation(dataIdx) {
-    const r = globalData[dataIdx]; 
-    
-    if (!r || r.Latitude == null || r.Longitude == null) {
-        alert('Koordinat lokasi tidak tersedia untuk data ini.');
-        lastClickedLocation = null; // Reset
-        return;
-    }
-
-    // 1. Simpan lokasi yang baru diklik
-    lastClickedLocation = {
-        latlng: [r.Latitude, r.Longitude],
-        data: r
-    };
-
-    // 2. Langsung ganti ke tab Peta Sebaran dengan animasi
-    switchToMapTab();
-}
-
-
-/**
- * Mengatur batas tampilan peta (fitBounds) agar mencakup semua lokasi yang terfilter.
- * (Fungsi ini digunakan sebagai fallback jika tidak ada lokasi yang diklik)
- */
-function zoomToFilteredArea() {
-    if (filteredView.length === 0) {
-        map.setView(CIAMIS_CENTER, DEFAULT_ZOOM);
-        return;
-    }
-
-    const latLngs = [];
-    filteredView.forEach(r => {
-        if (r.Latitude != null && r.Longitude != null) {
-            latLngs.push(L.latLng(r.Latitude, r.Longitude));
-        }
-    });
-
-    if (latLngs.length > 0) {
-        const bounds = L.latLngBounds(latLngs);
-        map.fitBounds(bounds, { padding: [50, 50] }); 
-    } else {
-        map.setView(CIAMIS_CENTER, DEFAULT_ZOOM);
-    }
-}
-
-/* ============================================== */
-/* END FUNGSI BARU */
-/* ============================================== */
-
 function canonicalDisplay(name){
   const n = normalizeNameRaw(name);
   if(!n) return n;
@@ -859,11 +738,7 @@ function renderTable(){
     const tr = document.createElement('tr'); tr.dataset.idx = r._idx;
     const isAdmin = userRole === 'admin';
     tr.innerHTML = `
-      <td contenteditable="${isAdmin}">
-        <a href="#" onclick="zoomToLocation(${r._idx}); return false;" style="font-weight:600; color:var(--main-purple); text-decoration:none;">
-           ${escapeHtml(r.Nama)}
-        </a>
-      </td>
+      <td contenteditable="${isAdmin}">${escapeHtml(r.Nama)}</td>
       <td contenteditable="${isAdmin}">${escapeHtml(r.NoKK)}</td>
       <td contenteditable="${isAdmin}">${escapeHtml(r.NoNIK)}</td>
       <td contenteditable="${isAdmin}">${escapeHtml(r.Alamat)}</td>
@@ -881,11 +756,7 @@ function renderTable(){
         <button class="btn btn-sm btn-success small-btn" onclick="saveRow(this)" style="display:${isAdmin?'':'none'}"><i class="fa-solid fa-save"></i></button>
         <button class="btn btn-sm btn-danger small-btn" onclick="deleteRow(this)" style="display:${isAdmin?'':'none'}"><i class="fa-solid fa-trash"></i></button>
       </td>`;
-    tr.addEventListener('click', function(e){ 
-        // Jangan select row jika yang diklik adalah link/button
-        if(e.target.tagName==='BUTTON' || e.target.closest('a')) return; 
-        selectRow(r._idx, tr); 
-    });
+    tr.addEventListener('click', function(e){ if(e.target.tagName==='BUTTON') return; selectRow(r._idx, tr); });
     tbody.appendChild(tr);
   });
 
@@ -917,8 +788,7 @@ function selectRow(globalIdx, trEl){
 function addRow(){ if(userRole!=='admin') return; const newObj={Nama:'',NoKK:'',NoNIK:'',Alamat:'',Kecamatan:'',Desa:'',Kelurahan:'',LuasRumah:0,JumlahPenghuni:0,KecukupanRuang:'',StatusKepemilikanTanah:'',AksesSanitasi:'',Latitude:null,Longitude:null}; globalData.push(newObj); populateFilters(); applyFilters(); saveToFirebase(); selectedGlobalIndex = globalData.length-1; }
 function saveRow(btn){ if(userRole!=='admin') return; const tr = btn.closest('tr'); const idx = parseInt(tr.dataset.idx); const cells = tr.querySelectorAll('td');
   globalData[idx] = {
-    Nama: cells[0].querySelector('a') ? cells[0].querySelector('a').innerText.trim() : cells[0].innerText.trim(), 
-    NoKK: cells[1].innerText.trim(), NoNIK: cells[2].innerText.trim(), Alamat: cells[3].innerText.trim(),
+    Nama: cells[0].innerText.trim(), NoKK: cells[1].innerText.trim(), NoNIK: cells[2].innerText.trim(), Alamat: cells[3].innerText.trim(),
     Kecamatan: cells[4].innerText.trim(), Desa: cells[5].innerText.trim(), Kelurahan: cells[6].innerText.trim(),
     LuasRumah: safeFloat(cells[7].innerText) || 0, JumlahPenghuni: parseInt(cells[8].innerText) || 0,
     KecukupanRuang: cells[9].innerText.trim() || '', StatusKepemilikanTanah: cells[10].innerText.trim() || '',
@@ -1117,7 +987,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
 /* ============================================== */
-/* LOGIKA SUBMENU BARU (DIMODIFIKASI UNTUK ZOOM DAN GANTI TAB) */
+/* LOGIKA SUBMENU BARU */
 /* ============================================== */
 
 function showContentGroup(id) {
@@ -1128,45 +998,10 @@ function showContentGroup(id) {
     const targetGroup = document.getElementById(id + '-content');
     if (targetGroup) {
         targetGroup.style.display = 'block';
-        
+        // Force refresh for map and charts when activated
         if (id === 'peta-sebaran') {
             // Leaflet map fix: ensure it redraws when container becomes visible
-            setTimeout(() => { 
-                map.invalidateSize(true); 
-
-                // >> LOGIKA BARU: Jika ada lokasi yang diklik terakhir
-                if (lastClickedLocation) {
-                    const { latlng, data: r } = lastClickedLocation;
-                    const zoomLevel = 18; // Zoom lebih dekat
-
-                    // 1. Set pusat peta dan level zoom DENGAN ANIMASI MULUS
-                    map.setView(latlng, zoomLevel, { animate: true, duration: 0.8 }); 
-                    
-                    // 2. Buka pop-up dengan konten data tersebut
-                    const popupContent = buildPopupHTML(r);
-                    const popup = L.popup({
-                        className: 'custom-popup-temporary',
-                        maxWidth: 280,
-                        closeButton: true,
-                        autoClose: false 
-                    })
-                    .setLatLng(latlng)
-                    .setContent(popupContent)
-                    .openOn(map);
-
-                    // 3. Tutup pop-up setelah 5 detik
-                    setTimeout(() => {
-                        if (map.hasLayer(popup)) {
-                            map.closePopup(popup);
-                        }
-                        lastClickedLocation = null; // Reset setelah tampil
-                    }, 5000);
-
-                } else {
-                    // Jika tidak ada lokasi yang diklik, gunakan zoom default (filter/Ciamis)
-                    zoomToFilteredArea();
-                }
-            }, 10); 
+            setTimeout(() => { map.invalidateSize(true); }, 10); 
         }
         if (id === 'analisis-grafik' || id === 'dashboard') {
             setTimeout(() => { updateCharts(); }, 10); 
