@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SIRUCI — Dashboard Rutilahu</title>
+  <title>SIRUCI — Dashboard Rutilahu (Submenu Layout)</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
@@ -26,335 +26,332 @@
       --main-purple: #7c3aed; /* Ungu yang lebih vibrant */
       --secondary-blue: #3b82f6;
       --success-green: #10b981;
-      --warning-yellow: #f59e0b;
       --danger-red: #ef4444;
     }
     
-    /* === CSS BARU UNTUK LOGO HEADER === */
-    .header-logo {
-        height: 40px; /* Atur tinggi logo */
-        width: auto;
-    }
-    .brand-subtext {
-        font-size:0.95rem;
-    }
-    /* ================================== */
-
-
-    /* FONT Kustom */
     body { 
       margin:0; 
       font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
       background: var(--page-bg); 
       color:var(--text); 
       font-size: 16px; 
+      display: flex; /* Mengaktifkan Flexbox untuk layout utama */
+      min-height: 100vh; /* Agar tinggi minimal penuh */
     }
-    .container-fluid{ padding:26px; max-width:1400px; margin:auto; } /* Kontainer lebih lebar */
-    .brand { color: var(--main-purple); font-weight:800; font-size:1.75rem; margin-right: 0 !important; }
-    .card { 
-      border-radius:16px; /* Lebih rounded */
-      background:var(--card-bg); 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.06); /* Shadow yang lebih halus */
-      border:1px solid #e5e7eb; /* Border halus */
-      transition: all 0.3s ease;
+    
+    /* --- Layout Sidebar (Submenu) --- */
+    .sidebar {
+        width: 260px; /* Lebar Sidebar */
+        flex-shrink: 0;
+        background-color: var(--card-bg); /* Latar putih */
+        border-right: 1px solid #e5e7eb;
+        padding: 20px;
+        position: sticky; /* Sticky di bagian atas viewport */
+        top: 0;
+        height: 100vh; /* Tinggi penuh */
+        overflow-y: auto; /* Scroll jika konten sidebar banyak */
+        box-shadow: 0 0 10px rgba(0,0,0,0.05);
     }
-    .card:hover {
-        box-shadow: 0 14px 40px rgba(0,0,0,0.08); /* Sedikit lift-up on hover */
+    .content-area {
+        flex-grow: 1;
+        padding: 26px; 
+        max-width: calc(100% - 260px); /* Konten menyesuaikan sisa lebar */
+        margin: auto; 
     }
-
-    /* KPI grid */
-    .kpi-grid { display:grid; grid-template-columns: repeat(6,1fr); gap:16px; margin-bottom:24px; }
-    @media (max-width:1200px){ .kpi-grid { grid-template-columns: repeat(3,1fr); } }
-    @media (max-width:768px){ .kpi-grid { grid-template-columns: repeat(2,1fr); } }
-    @media (max-width:576px){ .kpi-grid { grid-template-columns: 1fr; } }
+    
+    /* Logo dan Header di Sidebar */
+    .sidebar-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+    .header-logo { height: 32px; width: auto; }
+    .brand { color: var(--main-purple); font-weight:800; font-size:1.4rem; margin-right: 0 !important; }
+    .brand-subtext { font-size:0.8rem; }
+    
+    /* Navigasi Submenu */
+    .nav-link.sidebar-link {
+        color: var(--text);
+        padding: 10px 15px;
+        margin-bottom: 5px;
+        border-radius: 8px;
+        transition: background-color 0.2s, color 0.2s;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+    }
+    .nav-link.sidebar-link i {
+        margin-right: 10px;
+        font-size: 1.1rem;
+    }
+    .nav-link.sidebar-link:hover {
+        background-color: #eef2ff; /* Light Purple-Blue */
+        color: var(--main-purple);
+    }
+    .nav-link.sidebar-link.active {
+        background-color: var(--main-purple);
+        color: white;
+        font-weight: 700;
+        box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
+    }
+    
+    /* --- Konten Dashboard (KPI, Charts, Map, Table) --- */
+    .kpi-grid { 
+      display:grid; 
+      grid-template-columns: repeat(6,1fr); 
+      gap:16px; 
+      margin-bottom:24px; 
+    }
+    @media (max-width:1600px){ .kpi-grid { grid-template-columns: repeat(3,1fr); } } /* Penyesuaian karena sidebar */
+    @media (max-width:1200px){ .kpi-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width:992px){ .sidebar{ width: 100%; height: auto; position: relative; border-right: none; border-bottom: 1px solid #e5e7eb; } .content-area{ max-width: 100%; padding: 15px; } .kpi-grid { grid-template-columns: 1fr; } } /* Mobile */
 
     .kpi-card {
-      padding:18px; 
-      border-radius:14px; 
-      min-height:100px; /* Lebih compact */
-      display:flex; 
-      flex-direction:column; 
-      align-items:center; 
-      justify-content:center; 
-      text-align:center;
-      border:none; /* Hilangkan border individual */
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      transition: transform .2s ease;
+        padding:20px; border-radius:14px; min-height:100px; display:flex; flex-direction:column; align-items:flex-start; justify-content:center; text-align:left; border:none; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform .2s ease; position: relative; overflow: hidden; 
     }
-    .kpi-card:hover{ transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,0.1); }
-    .kpi-label{ color:var(--muted); font-weight:600; font-size:0.85rem; margin-bottom:4px; text-align:center; text-transform:uppercase; }
-    .kpi-value{ font-weight:800; font-size:1.8rem; color:var(--text); text-align:center; }
+    /* Color scheme KPI (tetap sama) */
+    .kpi-card:nth-child(1){ background: #f0f4ff; border-left: 5px solid var(--main-purple); } 
+    .kpi-card:nth-child(2){ background: #e0f2fe; border-left: 5px solid var(--secondary-blue); } 
+    .kpi-card:nth-child(3){ background: #eef2ff; border-left: 5px solid #6b7280; } 
+    .kpi-card:nth-child(4){ background: #f0fdf4; border-left: 5px solid var(--success-green); } 
+    .kpi-card:nth-child(5){ background: #fff7ed; border-left: 5px solid #f59e0b; } 
+    .kpi-card:nth-child(6){ background: #fef2f2; border-left: 5px solid var(--danger-red); } 
+    .kpi-label{ color:var(--muted); font-weight:600; font-size:0.85rem; margin-bottom:4px; text-align:left; text-transform:uppercase; z-index: 1; }
+    .kpi-value{ font-weight:800; font-size:1.8rem; color:var(--text); text-align:left; z-index: 1; }
+    .kpi-icon-bg { position: absolute; right: 15px; bottom: 10px; font-size: 3.5rem; color: rgba(0,0,0,0.08); z-index: 0; }
 
-    /* Color scheme KPI yang lebih flat dan konsisten */
-    .kpi-card:nth-child(1){ background: #f0f4ff; } /* Light Blue */
-    .kpi-card:nth-child(2){ background: #e0f2fe; } /* Light Cyan */
-    .kpi-card:nth-child(3){ background: #f0fdf4; } /* Light Green */
-    .kpi-card:nth-child(4){ background: #fdf2f8; } /* Light Pink */
-    .kpi-card:nth-child(5){ background: #fff7ed; } /* Light Orange */
-    .kpi-card:nth-child(6){ background: #f5f3ff; } /* Light Purple */
-
-    /* Charts */
+    /* Map, Chart, Table styling (tetap sama) */
+    .card { border-radius:16px; background:var(--card-bg); box-shadow: 0 10px 30px rgba(0,0,0,0.06); border:1px solid #e5e7eb; transition: all 0.3s ease; }
     .charts-row { gap:16px; margin-bottom:24px; }
-    /* Pie charts menggunakan Bootstrap row/col, jadi hanya perlu gap */
-    .pie-charts-row { margin-bottom: 24px; margin-left: -8px; margin-right: -8px; } /* Override default row margin */
-    .pie-charts-row > div { padding-left: 8px; padding-right: 8px; } /* Apply the gap */
-    
+    .pie-charts-row { margin-bottom: 24px; margin-left: -8px; margin-right: -8px; } 
+    .pie-charts-row > div { padding-left: 8px; padding-right: 8px; } 
     .chart-card{ padding:16px; border-radius:16px; }
-
-    /* Table Improvements */
-    .table-responsive {
-      border-radius: 12px;
-      margin-bottom: 20px;
-      border: 1px solid #e5e7eb; /* Border halus */
-    }
-
-    table#dataTable {
-      font-size: 0.9rem;
-    }
-
-    table#dataTable thead {
-      background: var(--main-purple); /* Header warna ungu */
-      color: #fff;
-    }
+    #map { height: 500px; border-radius:16px; margin-top:18px; border: 1px solid #e5e7eb; } 
     
-    table#dataTable th {
-      font-weight: 600;
-      padding: 12px 16px;
-    }
-
-    table#dataTable tbody tr:nth-child(odd) {
-      background-color: #f9fafb; /* Stripe effect */
-    }
-
-    table#dataTable tbody tr:hover {
-      background: #eef2ff; /* Hover warna biru lembut */
-      transition: background 0.2s ease;
-    }
+    /* Custom Doughnut styles */
+    .doughnut-chart-container { position: relative; height: 320px; }
+    .chart-center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+    .chart-center-text .main-text { font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .chart-center-text .sub-text { font-size: 0.9rem; color: var(--muted); }
     
-    /* Input & Select fields */
-    .form-control, .form-select {
-        border-radius: 8px;
-        border: 1px solid #d1d5db;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-    .form-control:focus, .form-select:focus {
-        border-color: var(--secondary-blue);
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-    }
+    /* Table styling (tetap sama) */
+    .table-responsive { border-radius: 12px; margin-bottom: 20px; border: 1px solid #e5e7eb; }
+    table#dataTable thead { background: var(--main-purple); color: #fff; }
     
-    /* Button Group Custom */
-    .btn-group .btn {
-        border-radius: 8px !important;
-        margin-left: 8px;
-        transition: all 0.2s ease;
-    }
-    .btn-group .btn:first-child { margin-left: 0; }
-    
-    /* Map */
-    #map { height: 500px; border-radius:16px; margin-top:18px; border: 1px solid #e5e7eb; } /* Map lebih tinggi */
-
-    /* Custom Marker Styling - Lebih Rapi */
-    .custom-house-marker { border: none; background: none; }
-
-    /* Custom Marker Cluster Styling (Matching Purple & Green) */
-    .marker-cluster-small { background-color: rgba(124, 58, 237, 0.6); } /* Main Purple */
-    .marker-cluster-small div { background-color: rgba(124, 58, 237, 0.9); }
-
-    .marker-cluster-medium { background-color: rgba(16, 185, 129, 0.6); } /* Success Green */
-    .marker-cluster-medium div { background-color: rgba(16, 185, 129, 0.9); }
-
-    .marker-cluster-large { background-color: rgba(245, 158, 11, 0.6); } /* Warning Yellow */
-    .marker-cluster-large div { background-color: rgba(245, 158, 11, 0.9); }
-
-    .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large {
-      color: white;
-      font-weight: 700;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.8);
-      text-shadow: 0 1px 1px rgba(0,0,0,0.2);
-    }
-    
-    /* Popup Styling - Lebih Modern */
-    .popup-card { 
-        border-radius:12px; 
-        padding:12px; 
-        color:var(--text); 
-        box-shadow: 0 8px 24px rgba(0,0,0,0.15); 
-        width: 250px;
-    }
-    .popup-title { font-weight:800; font-size:1.1rem; margin-bottom:2px; }
-    .popup-sub { color: #4b5563; font-size:0.88rem; line-height:1.4; }
-    .popup-meta { font-size:0.85rem; color:#4b5563; }
-    
-    .popup-card::before { background: inherit; } /* Biar segitiga pop-up mengikuti warna background */
-    
-    /* STYLE BARU untuk label yang disabled */
-    #togglePerDesa:disabled + #togglePerDesaLabel {
-        opacity: 0.5;
-        cursor: not-allowed;
+    /* Login & Sync (tetap sama) */
+    #sync-status-indicator {
+        position: fixed; bottom: 20px; right: 20px; padding: 8px 16px; border-radius: 8px;
+        background-color: var(--main-purple); color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        z-index: 1500; display: none; align-items: center; transition: opacity 0.3s ease;
     }
 
   </style>
 </head>
 <body>
 
-<div class="container-fluid">
-  
-  <div class="d-flex align-items-center mb-4">
-    
-    <div class="d-flex align-items-center me-auto"> 
-        <img src="https://github.com/kabupatenciamis/rutilahu/blob/main/Lambang_Kabupaten_Ciamis.png?raw=true" class="header-logo me-3" alt="Logo Kabupaten Ciamis">
-        
-        <h3 class="brand">
-            <i class="fa-solid fa-house-chimney"></i> SIRUCI 
-            <small class="text-muted fw-normal brand-subtext">
-                - Sistem Informasi Rutilahu Kabupaten Ciamis
-            </small>
-        </h3>
+<div class="sidebar">
+    <div class="sidebar-header">
+        <img src="https://github.com/kabupatenciamis/rutilahu/blob/main/Lambang_Kabupaten_Ciamis.png?raw=true" class="header-logo me-2" alt="Logo Ciamis">
+        <div>
+            <div class="brand">SIRUCI</div>
+            <div class="text-muted brand-subtext">Dashboard Rutilahu</div>
+        </div>
     </div>
     
-    <img src="https://github.com/kabupatenciamis/rutilahu/blob/main/PRKPLH.png?raw=true" class="header-logo me-3" alt="Logo DPRKPLH Ciamis">
+    <div class="mb-4" style="font-size:0.85rem; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px;">
+        <div style="font-size:0.85rem;color:var(--muted);">Masuk sebagai</div>
+        <div id="userRole" class="fw-bold" style="font-size:1rem;">-</div>
+        <a id="logoutBtn" class="btn btn-sm btn-outline-danger mt-2 w-100" style="display:none;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+    </div>
 
-    <div class="text-end">
-      <div style="font-size:0.85rem;color:var(--muted);">Masuk sebagai</div>
-      <div id="userRole" class="fw-bold" style="font-size:1rem;">-</div>
-      <a id="logoutBtn" class="btn btn-sm btn-outline-danger mt-1" style="display:none;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
-    </div>
-  </div>
-  <div class="mb-4" style="color:var(--main-purple);font-weight:600; font-size:1.1rem;">Data Tepat, Bantuan Cepat, Ciamis Hebat</div>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link sidebar-link active" href="#" data-content="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard Utama</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link sidebar-link" href="#" data-content="data-tabel"><i class="fa-solid fa-table"></i> Data Rutilahu</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link sidebar-link" href="#" data-content="peta-sebaran"><i class="fa-solid fa-map-location-dot"></i> Peta Sebaran</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link sidebar-link" href="#" data-content="analisis-grafik"><i class="fa-solid fa-chart-pie"></i> Analisis Grafik</a>
+        </li>
+        </ul>
+    
+    <footer style="text-align:center;color:var(--muted);margin-top:24px; font-size:0.75rem; position: absolute; bottom: 20px; width: calc(100% - 40px);">
+        © 2025 DPRKPLH Ciamis
+    </footer>
+</div>
+<div class="content-area">
+  
+  <header class="d-flex justify-content-between align-items-center mb-4 pb-3" style="border-bottom: 1px solid #e5e7eb;">
+    <h3 style="color:var(--main-purple);font-weight:700; font-size:1.5rem;">Data Tepat, Bantuan Cepat, Ciamis Hebat</h3>
+    <img src="https://github.com/kabupatenciamis/rutilahu/blob/main/PRKPLH.png?raw=true" class="header-logo" alt="Logo DPRKPLH Ciamis">
+  </header>
 
-  <div class="kpi-grid" id="kpiGrid">
-    <div class="kpi-card">
-      <div class="kpi-label">Total Rutilahu</div>
-      <div class="kpi-value" id="totalData">0</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Kecamatan</div>
-      <div class="kpi-value" id="totalKecamatan">0</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Desa / Kelurahan</div>
-      <div class="kpi-value" id="totalDesa">0</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Total Penghuni</div>
-      <div class="kpi-value" id="totalPenghuni">0</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Kecukupan Ruang (CUKUP)</div>
-      <div class="kpi-value" id="totalCukup">0</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Kecukupan Ruang (TIDAK)</div>
-      <div class="kpi-value" id="totalTidak">0</div>
-    </div>
-  </div>
 
-  <div class="charts-row">
-    <div class="card chart-card">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-          <div style="font-weight:700; font-size:1.1rem;">Bar Chart — Jumlah per Kecamatan / Desa-Kelurahan</div>
-          <div class="text-muted" style="font-size:0.85rem;">Centang "Per Desa" untuk melihat per (Desa / Kelurahan)</div>
+  <div id="dashboard-content" class="content-group">
+      <h5 class="fw-bold mb-3" style="font-size:1.4rem;">Indikator Kunci (Key Performance Indicators)</h5>
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card">
+          <i class="fa-solid fa-house-chimney kpi-icon-bg"></i>
+          <div class="kpi-label">Total Rutilahu</div>
+          <div class="kpi-value" id="totalData">0</div>
         </div>
-        <div>
-          <input type="checkbox" id="togglePerDesa" /> 
-          <label for="togglePerDesa" id="togglePerDesaLabel" style="font-size:0.9rem;color:var(--muted);font-weight:600;">Per Desa</label>
+        <div class="kpi-card">
+          <i class="fa-solid fa-map kpi-icon-bg"></i>
+          <div class="kpi-label">Kecamatan</div>
+          <div class="kpi-value" id="totalKecamatan">0</div>
+        </div>
+        <div class="kpi-card">
+          <i class="fa-solid fa-map-pin kpi-icon-bg"></i>
+          <div class="kpi-label">Desa / Kelurahan</div>
+          <div class="kpi-value" id="totalDesa">0</div>
+        </div>
+        <div class="kpi-card">
+          <i class="fa-solid fa-users kpi-icon-bg"></i>
+          <div class="kpi-label">Total Penghuni</div>
+          <div class="kpi-value" id="totalPenghuni">0</div>
+        </div>
+        <div class="kpi-card">
+          <i class="fa-solid fa-check-circle kpi-icon-bg"></i>
+          <div class="kpi-label">Kecukupan Ruang (CUKUP)</div>
+          <div class="kpi-value" id="totalCukup">0</div>
+        </div>
+        <div class="kpi-card">
+          <i class="fa-solid fa-exclamation-triangle kpi-icon-bg"></i>
+          <div class="kpi-label">Kecukupan Ruang (TIDAK)</div>
+          <div class="kpi-value" id="totalTidak">0</div>
         </div>
       </div>
-      <div style="height:350px;"><canvas id="barKecamatan"></canvas></div>
-    </div>
+  </div>
+
+
+  <div id="analisis-grafik-content" class="content-group">
+      <h5 class="fw-bold mb-3" style="font-size:1.4rem;">Analisis Data Rutilahu</h5>
+      
+      <div class="charts-row">
+        <div class="card chart-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <div style="font-weight:700; font-size:1.1rem;">Bar Chart — Jumlah per Kecamatan / Desa-Kelurahan</div>
+              <div class="text-muted" style="font-size:0.85rem;">Centang "Per Desa" untuk melihat per (Desa / Kelurahan)</div>
+            </div>
+            <div>
+              <input type="checkbox" id="togglePerDesa" /> 
+              <label for="togglePerDesa" id="togglePerDesaLabel" style="font-size:0.9rem;color:var(--muted);font-weight:600;">Per Desa</label>
+            </div>
+          </div>
+          <div style="height:350px;"><canvas id="barKecamatan"></canvas></div>
+        </div>
+      </div>
+      
+      <div class="row pie-charts-row">
+        <div class="col-lg-6 mb-3 mb-lg-0">
+            <div class="card chart-card">
+              <div style="font-weight:700;margin-bottom:6px; font-size:1.1rem;">Doughnut Chart — Distribusi Status Kepemilikan Tanah</div>
+              <div class="doughnut-chart-container">
+                  <canvas id="pieKepemilikan"></canvas>
+                  <div class="chart-center-text" id="centerTextKepemilikan"></div>
+              </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card chart-card">
+              <div style="font-weight:700;margin-bottom:6px; font-size:1.1rem;">Doughnut Chart — Distribusi Akses Sanitasi</div>
+              <div class="doughnut-chart-container">
+                  <canvas id="pieSanitasi"></canvas>
+                  <div class="chart-center-text" id="centerTextSanitasi"></div>
+              </div>
+            </div>
+        </div>
+      </div>
   </div>
   
-  <div class="row pie-charts-row">
-    <div class="col-lg-6 mb-3 mb-lg-0">
-        <div class="card chart-card">
-          <div style="font-weight:700;margin-bottom:6px; font-size:1.1rem;">Pie Chart — Distribusi Status Kepemilikan Tanah</div>
-          <div style="height:320px;"><canvas id="pieKepemilikan"></canvas></div>
+  
+  <div id="data-tabel-content" class="content-group">
+      <div class="card p-4 mb-4">
+        <h5 class="card-title fw-bold" style="font-size:1.4rem;">Tabel Data Rutilahu</h5>
+    
+        <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+          <div class="input-group" style="max-width:300px;">
+            <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
+            <input type="text" id="searchInput" class="form-control" placeholder="Cari Nama/NIK..." autocomplete="off">
+          </div>
+    
+          <select id="filterKecamatan" class="form-select" style="max-width:200px;"></select>
+          <select id="filterDesa" class="form-select" style="max-width:200px;"></select>
+          <select id="filterKelurahan" class="form-select" style="max-width:220px;"></select>
+          
+          <button id="resetFiltersBtn" class="btn btn-outline-secondary"><i class="fa-solid fa-sync"></i> Reset Filter</button>
+    
+          <div class="ms-auto btn-group">
+            <label class="btn btn-outline-secondary">
+              <i class="fa-solid fa-file-excel"></i> Unggah XLSX
+              <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none;">
+            </label>
+            <button id="downloadTemplate" class="btn btn-outline-secondary"><i class="fa-solid fa-download"></i> Template</button>
+            <button class="btn btn-success" onclick="addRow()"><i class="fa-solid fa-plus"></i> Tambah Baris</button>
+            <button class="btn btn-outline-primary" onclick="exportExcel()"><i class="fa-solid fa-share-square"></i> Ekspor XLSX</button>
+            <button id="clearData" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Hapus Semua</button>
+          </div>
         </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="card chart-card">
-          <div style="font-weight:700;margin-bottom:6px; font-size:1.1rem;">Pie Chart — Distribusi Akses Sanitasi</div>
-          <div style="height:320px;"><canvas id="pieSanitasi"></canvas></div>
+    
+        <div class="table-responsive">
+          <table id="dataTable" class="table table-striped">
+            <thead>
+              <tr>
+                <th class="sortable">Nama</th>
+                <th class="sortable">No. KK</th>
+                <th class="sortable">No. NIK</th>
+                <th class="sortable">Alamat</th>
+                <th class="sortable">Kecamatan</th>
+                <th class="sortable">Desa</th>
+                <th class="sortable">Kelurahan</th>
+                <th class="sortable">Luas Rumah</th>
+                <th class="sortable">Jml Penghuni</th>
+                <th class="sortable">Kecukupan Ruang</th>
+                <th class="sortable">Status Kepemilikan Tanah</th>
+                <th class="sortable">Akses Sanitasi</th>
+                <th class="sortable">Latitude</th>
+                <th class="sortable">Longitude</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
         </div>
-    </div>
+    
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <div class="d-flex align-items-center">
+            <span>Baris per halaman:</span>
+            <select id="pageSizeSel" class="form-select form-select-sm ms-2" style="width:auto;">
+              <option value="10">10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </div>
+          <div id="pagination" class="btn-group"></div>
+          <div id="pageInfo" class="text-muted"></div>
+        </div>
+      </div>
   </div>
 
-  <div class="card p-4 mb-4">
-    <h5 class="card-title fw-bold" style="font-size:1.4rem;">Tabel Data Rutilahu</h5>
 
-    <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
-      <div class="input-group" style="max-width:300px;">
-        <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-        <input type="text" id="searchInput" class="form-control" placeholder="Cari Nama/NIK..." autocomplete="off">
+  <div id="peta-sebaran-content" class="content-group">
+      <div class="card p-4 mb-4">
+        <h5 class="card-title fw-bold" style="font-size:1.4rem;">Peta Sebaran Rutilahu</h5>
+        <div class="text-muted" style="font-size:0.9rem;margin-bottom:12px;">Klik peta untuk menyimpan koordinat ke baris terpilih (Admin)</div>
+        <div id="map"></div>
       </div>
-
-      <select id="filterKecamatan" class="form-select" style="max-width:200px;"></select>
-      <select id="filterDesa" class="form-select" style="max-width:200px;"></select>
-      <select id="filterKelurahan" class="form-select" style="max-width:220px;"></select>
-
-      <div class="ms-auto btn-group">
-        <label class="btn btn-outline-secondary">
-          <i class="fa-solid fa-file-excel"></i> Unggah XLSX
-          <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none;">
-        </label>
-        <button id="downloadTemplate" class="btn btn-outline-secondary"><i class="fa-solid fa-download"></i> Template</button>
-        <button class="btn btn-success" onclick="addRow()"><i class="fa-solid fa-plus"></i> Tambah Baris</button>
-        <button class="btn btn-outline-primary" onclick="exportExcel()"><i class="fa-solid fa-share-square"></i> Ekspor XLSX</button>
-        <button id="clearData" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Hapus Semua</button>
-      </div>
-    </div>
-
-    <div class="table-responsive">
-      <table id="dataTable" class="table table-striped">
-        <thead>
-          <tr>
-            <th class="sortable">Nama</th>
-            <th class="sortable">No. KK</th>
-            <th class="sortable">No. NIK</th>
-            <th class="sortable">Alamat</th>
-            <th class="sortable">Kecamatan</th>
-            <th class="sortable">Desa</th>
-            <th class="sortable">Kelurahan</th>
-            <th class="sortable">Luas Rumah</th>
-            <th class="sortable">Jml Penghuni</th>
-            <th class="sortable">Kecukupan Ruang</th>
-            <th class="sortable">Status Kepemilikan Tanah</th>
-            <th class="sortable">Akses Sanitasi</th>
-            <th class="sortable">Latitude</th>
-            <th class="sortable">Longitude</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mt-3">
-      <div class="d-flex align-items-center">
-        <span>Baris per halaman:</span>
-        <select id="pageSizeSel" class="form-select form-select-sm ms-2" style="width:auto;">
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-          <option value="100">100</option>
-        </select>
-      </div>
-      <div id="pagination" class="btn-group"></div>
-      <div id="pageInfo" class="text-muted"></div>
-    </div>
   </div>
 
-  <div class="card p-4 mb-4">
-    <h5 class="card-title fw-bold" style="font-size:1.4rem;">Peta Sebaran Rutilahu</h5>
-    <div class="text-muted" style="font-size:0.9rem;margin-bottom:12px;">Klik peta untuk menyimpan koordinat ke baris terpilih (Admin)</div>
-    <div id="map"></div>
-  </div>
 
   <footer style="text-align:center;color:var(--muted);margin-top:24px; font-size:0.85rem;">© 2025 Pemerintah Kabupaten Ciamis — Dinas Perumahan Rakyat, Kawasan Permukiman dan Lingkungan Hidup</footer>
 </div>
-
 <div id="login-overlay" style="position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:2000;">
   <div class="card p-4" style="width:100%;max-width:420px; border-radius:12px;">
     <h5 class="mb-3 fw-bold">Login ke SIRUCI</h5>
@@ -368,6 +365,13 @@
   </div>
 </div>
 
+<div id="sync-status-indicator">
+  <div class="spinner-border" role="status">
+    <span class="visually-hidden">Memuat...</span>
+  </div>
+  <span id="sync-status-text">Sinkronisasi...</span>
+</div>
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -379,7 +383,7 @@
 
 <script>
 /* =========================
-   State + Firebase
+   State + Firebase + Functions (DIAMBIL DARI SIRUCI REV.HTML)
    ========================= */
 const LS_SORT = 'rutilahu_sort_v1';
 let globalData = [];
@@ -390,6 +394,11 @@ let markerClusterGroup;
 let currentPage = 1;
 let pageSize = parseInt(localStorage.getItem('rutilahu_page_size')||'10',10);
 let userRole = null;
+// >> LOGIKA BARU UNTUK ZOOM DAN GANTI TAB
+let lastClickedLocation = null; 
+const CIAMIS_CENTER = [-7.33, 108.33];
+const DEFAULT_ZOOM = 10;
+// END LOGIKA BARU
 
 const firebaseConfig = {
   apiKey: "AIzaSyCSdubntMjMsOFIHNl-z9f6GTnBEJsz8qk",
@@ -404,11 +413,25 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.database();
 
-/* Helpers */
+const syncIndicator = document.getElementById('sync-status-indicator');
+const syncStatusText = document.getElementById('sync-status-text');
+
+function showSyncStatus(message) {
+    syncStatusText.innerText = message;
+    syncIndicator.style.display = 'flex';
+    syncIndicator.style.opacity = '1';
+}
+
+function hideSyncStatus() {
+    syncIndicator.style.opacity = '0';
+    setTimeout(() => {
+        syncIndicator.style.display = 'none';
+        syncStatusText.innerText = 'Sinkronisasi...'; 
+    }, 300);
+}
+
 function safeFloat(v){ const n=parseFloat(v); return isNaN(n)? null : n; }
 function escapeHtml(s){ if(s==null) return ''; return String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-
-/* normalizeNameRaw: keep words (do not strip 'desa'/'kelurahan') */
 function normalizeNameRaw(name){
   return (name||'').toString().toLowerCase()
     .replace(/\r|\n/g,' ')
@@ -416,13 +439,88 @@ function normalizeNameRaw(name){
     .replace(/\s+/g,' ')
     .trim();
 }
+
+/**
+ * Pindah ke tab Peta Sebaran dan mengaktifkan link di sidebar.
+ */
+function switchToMapTab() {
+    const mapLink = document.querySelector('.sidebar-link[data-content="peta-sebaran"]');
+
+    if (mapLink) {
+        // Hapus status 'active' dari semua link
+        document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+        
+        // Tambahkan status 'active' ke link Peta Sebaran
+        mapLink.classList.add('active');
+        
+        // Panggil showContentGroup untuk menampilkan konten peta
+        showContentGroup('peta-sebaran');
+    }
+}
+
+/* ============================================== */
+/* FUNGSI BARU UNTUK ZOOM DAN POPUP 5 DETIK (DIMODIFIKASI) */
+/* ============================================== */
+
+/**
+ * FUNGSI BARU (dimodifikasi): Menyimpan lokasi yang diklik DAN langsung mengganti tab.
+ * @param {number} dataIdx - Index data di globalData (r._idx)
+ */
+function zoomToLocation(dataIdx) {
+    const r = globalData[dataIdx]; 
+    
+    if (!r || r.Latitude == null || r.Longitude == null) {
+        alert('Koordinat lokasi tidak tersedia untuk data ini.');
+        lastClickedLocation = null; // Reset
+        return;
+    }
+
+    // 1. Simpan lokasi yang baru diklik
+    lastClickedLocation = {
+        latlng: [r.Latitude, r.Longitude],
+        data: r
+    };
+
+    // 2. Langsung ganti ke tab Peta Sebaran dengan animasi
+    switchToMapTab();
+}
+
+
+/**
+ * Mengatur batas tampilan peta (fitBounds) agar mencakup semua lokasi yang terfilter.
+ * (Fungsi ini digunakan sebagai fallback jika tidak ada lokasi yang diklik)
+ */
+function zoomToFilteredArea() {
+    if (filteredView.length === 0) {
+        map.setView(CIAMIS_CENTER, DEFAULT_ZOOM);
+        return;
+    }
+
+    const latLngs = [];
+    filteredView.forEach(r => {
+        if (r.Latitude != null && r.Longitude != null) {
+            latLngs.push(L.latLng(r.Latitude, r.Longitude));
+        }
+    });
+
+    if (latLngs.length > 0) {
+        const bounds = L.latLngBounds(latLngs);
+        map.fitBounds(bounds, { padding: [50, 50] }); 
+    } else {
+        map.setView(CIAMIS_CENTER, DEFAULT_ZOOM);
+    }
+}
+
+/* ============================================== */
+/* END FUNGSI BARU */
+/* ============================================== */
+
 function canonicalDisplay(name){
   const n = normalizeNameRaw(name);
   if(!n) return n;
   return n.split(' ').map(w=> w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
 }
 
-// =========================================================================
 // Fix for missing Leaflet icons:
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://unpkg.com/leaflet/dist/images/marker-icon-2x.png',
@@ -430,62 +528,44 @@ L.Icon.Default.mergeOptions({
     shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png',
 });
 
-/* House Icon Generator - L.DivIcon for robust rendering */
-function createHouseIconHex(hexColor = '#7c3aed') { /* Warna ungu baru */
+function createHouseIconHex(hexColor = '#7c3aed') { 
   const divContent = `
     <div style="
       background-color: ${hexColor};
       width: 30px;
       height: 30px;
-      /* Custom pin shape: rotated square with 3 rounded corners */
       border-radius: 50% 50% 50% 0; 
       transform: rotate(-45deg);
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-      border: 3px solid white; /* Border lebih tebal */
+      border: 3px solid white; 
     ">
       <i class="fa-solid fa-house-chimney" style="
         color: white;
         font-size: 14px;
-        /* Rotate back the icon so it appears straight inside the rotated pin */
         transform: rotate(45deg);
       "></i>
     </div>
   `;
-
-  return L.divIcon({
-    className: 'custom-house-marker', 
-    html: divContent,
-    iconSize: [30, 30],
-    iconAnchor: [15, 30], 
-    popupAnchor: [0, -30] 
-  });
+  return L.divIcon({ className: 'custom-house-marker', html: divContent, iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -30] });
 }
-// =========================================================================
 
-/* Map init */
+// Map init (Penting: harus dipanggil setelah elemen 'map' ada di DOM)
 const map = L.map('map').setView([-7.33,108.33],10);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution: '© OpenStreetMap' }).addTo(map);
 
-// Inisialisasi Marker Cluster Group
-markerClusterGroup = L.markerClusterGroup({
-    maxClusterRadius: 80, 
-    chunkedLoading: true 
-}).addTo(map);
+markerClusterGroup = L.markerClusterGroup({ maxClusterRadius: 80, chunkedLoading: true }).addTo(map);
 
-
-/* status color */
 function statusColor(status){
-  if(!status) return {hex:'#7c3aed', bg:'#f5f3ff'}; /* Main Purple */
+  if(!status) return {hex:'#7c3aed', bg:'#f5f3ff'}; 
   const s = status.toString().toLowerCase();
-  if(s.includes('cukup')) return {hex:'#10b981', bg:'#f0fdf4'}; /* Success Green */
-  if(s.includes('tidak')) return {hex:'#ef4444', bg:'#fef2f2'}; /* Danger Red */
+  if(s.includes('cukup')) return {hex:'#10b981', bg:'#f0fdf4'}; 
+  if(s.includes('tidak')) return {hex:'#ef4444', bg:'#fef2f2'}; 
   return {hex:'#7c3aed', bg:'#f5f3ff'};
 }
 
-/* popup HTML (include Kelurahan) */
 function buildPopupHTML(r){
   const sc = statusColor(r.KecukupanRuang || '');
   const nama = escapeHtml(r.Nama || '-');
@@ -513,24 +593,18 @@ function buildPopupHTML(r){
   `;
 }
 
-/* Update map markers */
 function updateMap(){
   markerClusterGroup.clearLayers();
   
   const markers = [];
-  
   filteredView.forEach(r=>{
     if(r.Latitude != null && r.Longitude != null){
       const st = statusColor(r.KecukupanRuang || '');
-      // Use the new main purple color for consistency if status is unknown/default
       const icon = createHouseIconHex(st.hex); 
       const m = L.marker([r.Latitude, r.Longitude], {icon});
       m.bindPopup(buildPopupHTML(r), {
-        className: 'custom-popup',
-        maxWidth: 280,
-        closeButton: true,
-        autoPanPaddingTopLeft: L.point(40, 40),
-        autoPanPaddingBottomRight: L.point(40, 40)
+        className: 'custom-popup', maxWidth: 280, closeButton: true,
+        autoPanPaddingTopLeft: L.point(40, 40), autoPanPaddingBottomRight: L.point(40, 40)
       });
       markers.push(m);
     }
@@ -539,27 +613,28 @@ function updateMap(){
   markerClusterGroup.addLayers(markers);
 }
 
-// Fungsi untuk mengontrol status checkbox Per Desa
 function updateTogglePerDesaState() {
   const kecSelect = document.getElementById('filterKecamatan');
   const toggleDesa = document.getElementById('togglePerDesa');
+  if(!kecSelect || !toggleDesa) return; 
   
-  const isDisabled = !kecSelect.value; // Jika value kosong ("Semua Kecamatan")
+  const isDisabled = !kecSelect.value; 
   
   if (isDisabled) {
-    toggleDesa.checked = false; // Reset centang jika non-aktif
+    toggleDesa.checked = false; 
     toggleDesa.disabled = true;
   } else {
     toggleDesa.disabled = false;
   }
 }
 
-/* Charts: perDesa uses "Kecamatan - Desa / Kelurahan" as label to keep uniqueness */
 function updateCharts(){
   const perDesa = document.getElementById('togglePerDesa')?.checked;
   const group = {};
   const pieKepemilikan = {};
   const pieSanitasi = {};
+  let totalKepemilikan = 0; 
+  let totalSanitasi = 0; 
 
   filteredView.forEach(r=>{
     const kec = (r.Kecamatan||'(Belum)').trim() || '(Belum)';
@@ -568,15 +643,14 @@ function updateCharts(){
     const key = perDesa ? `${desa}${kel? '' + kel : ''}` : kec;
     group[key] = (group[key] || 0) + 1;
 
-    // Perbaikan: Hanya melakukan trim()
     const stKepemilikanRaw = (r.StatusKepemilikanTanah||'(Belum)').toString();
-    // Menghilangkan spasi ekstra di awal/akhir untuk pengelompokan, 
-    // namun mempertahankan kapitalisasi yang ada.
     const stKepemilikan = stKepemilikanRaw.trim(); 
     pieKepemilikan[stKepemilikan] = (pieKepemilikan[stKepemilikan] || 0) + 1;
+    totalKepemilikan++; 
 
     const stSanitasi = (r.AksesSanitasi||'(Belum)').toString();
     pieSanitasi[stSanitasi] = (pieSanitasi[stSanitasi] || 0) + 1;
+    totalSanitasi++; 
   });
 
   const labels = Object.keys(group).sort((a,b)=> group[b]-group[a]);
@@ -588,44 +662,94 @@ function updateCharts(){
   const pieSanitasiLabels = Object.keys(pieSanitasi);
   const pieSanitasiValues = pieSanitasiLabels.map(k=> pieSanitasi[k]);
   
-  // Warna kustom untuk chart
+  function getCenterText(labels, values, total) {
+      if (total === 0) return { main: '0%', sub: 'Tidak Ada Data' };
+      const maxVal = Math.max(...values);
+      const maxIdx = values.indexOf(maxVal);
+      const percentage = (maxVal / total * 100).toFixed(1);
+      const label = labels[maxIdx] || 'Lainnya';
+      return { 
+          main: `${percentage}%`, 
+          sub: label.length > 20 ? `${label.substring(0, 17)}...` : label 
+      };
+  }
+
+  const centerKepemilikan = getCenterText(pieKepemilikanLabels, pieKepemilikanValues, totalKepemilikan);
+  const centerSanitasi = getCenterText(pieSanitasiLabels, pieSanitasiValues, totalSanitasi);
+  
+  const centerTextKepemilikan = document.getElementById('centerTextKepemilikan');
+  const centerTextSanitasi = document.getElementById('centerTextSanitasi');
+
+  if(centerTextKepemilikan) centerTextKepemilikan.innerHTML = `
+      <div class="main-text">${centerKepemilikan.main}</div>
+      <div class="sub-text">Status Tertinggi: ${centerKepemilikan.sub}</div>
+  `;
+  if(centerTextSanitasi) centerTextSanitasi.innerHTML = `
+      <div class="main-text">${centerSanitasi.main}</div>
+      <div class="sub-text">Status Tertinggi: ${centerSanitasi.sub}</div>
+  `;
+
+
   const barColors = labels.map((_, i) => i % 2 === 0 ? 'rgba(124, 58, 237, 0.9)' : 'rgba(59, 130, 246, 0.9)');
-  const pieColors = ['#7c3aed', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#94a3b8']; // Purple, Green, Yellow, Red, Blue, Gray
+  const pieColors = ['#7c3aed', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#94a3b8']; 
 
   if(chartKec) chartKec.destroy();
   if(chartKepemilikan) chartKepemilikan.destroy();
   if(chartSanitasi) chartSanitasi.destroy();
 
-  const ctxK = document.getElementById('barKecamatan').getContext('2d');
-  chartKec = new Chart(ctxK, {
-    type:'bar',
-    data:{ labels, datasets:[{ label: perDesa ? 'Jumlah per Desa/Kelurahan' : 'Jumlah per Kecamatan', data: values, backgroundColor: barColors }] },
+  const ctxK = document.getElementById('barKecamatan')?.getContext('2d');
+  if(ctxK) chartKec = new Chart(ctxK, {
+    type:'bar', data:{ labels, datasets:[{ label: perDesa ? 'Jumlah per Desa/Kelurahan' : 'Jumlah per Kecamatan', data: values, backgroundColor: barColors }] },
     options:{
-      responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false }}, animation:{ duration:700 },
-      scales:{ x:{ ticks:{ color:'#475569', autoSkip:false, maxRotation:45, minRotation:0 } }, y:{ ticks:{ color:'#475569' } } }
+      indexAxis: 'y', responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, animation:{ duration:700 },
+      elements: { bar: { borderRadius: 8, borderSkipped: false, } },
+      scales:{ x:{ ticks:{ color:'#475569', autoSkip:false, maxRotation:0, minRotation:0 } }, 
+               y:{ ticks:{ color:'#475569', autoSkip: false, maxRotation: 0, minRotation: 0 }, grid: { display: false } } 
+      }
     }
   });
 
-  const ctxP_Kepemilikan = document.getElementById('pieKepemilikan').getContext('2d');
-  chartKepemilikan = new Chart(ctxP_Kepemilikan, {
-    type:'pie',
-    data:{ labels: pieKepemilikanLabels, datasets:[{ data: pieKepemilikanValues, backgroundColor: pieColors }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' }}, animation:{ duration:700 } }
+  const ctxP_Kepemilikan = document.getElementById('pieKepemilikan')?.getContext('2d');
+  if(ctxP_Kepemilikan) chartKepemilikan = new Chart(ctxP_Kepemilikan, {
+    type:'doughnut', data:{ labels: pieKepemilikanLabels, datasets:[{ data: pieKepemilikanValues, backgroundColor: pieColors, hoverOffset: 8 }] },
+    options:{ 
+        responsive:true, maintainAspectRatio:false, cutout: '70%', 
+        plugins:{ legend:{ position:'bottom' }, tooltip: { callbacks: { label: function(context) {
+            let label = context.label || ''; if (label) label += ': ';
+            if (context.parsed !== null) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = (context.parsed / total * 100).toFixed(1);
+                label += context.parsed.toLocaleString('id-ID') + ' (' + percentage + '%)';
+            }
+            return label;
+        } } }, animation:{ duration:700 } } 
+    }
   });
 
-  const ctxP_Sanitasi = document.getElementById('pieSanitasi').getContext('2d');
-  chartSanitasi = new Chart(ctxP_Sanitasi, {
-    type:'pie',
-    data:{ labels: pieSanitasiLabels, datasets:[{ data: pieSanitasiValues, backgroundColor: pieColors.slice(0, pieSanitasiLabels.length) }] },
-    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'bottom' }}, animation:{ duration:700 } }
+  const ctxP_Sanitasi = document.getElementById('pieSanitasi')?.getContext('2d');
+  if(ctxP_Sanitasi) chartSanitasi = new Chart(ctxP_Sanitasi, {
+    type:'doughnut', data:{ labels: pieSanitasiLabels, datasets:[{ data: pieSanitasiValues, backgroundColor: pieColors.slice(0, pieSanitasiLabels.length), hoverOffset: 8 }] },
+    options:{ 
+        responsive:true, maintainAspectRatio:false, cutout: '70%', 
+        plugins:{ legend:{ position:'bottom' }, tooltip: { callbacks: { label: function(context) {
+            let label = context.label || ''; if (label) label += ': ';
+            if (context.parsed !== null) {
+                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                const percentage = (context.parsed / total * 100).toFixed(1);
+                label += context.parsed.toLocaleString('id-ID') + ' (' + percentage + '%)';
+            }
+            return label;
+        } } }, animation:{ duration:700 } } 
+    }
   });
 }
 
-/* Filters: populate kecamatan, desa, kelurahan filters */
 function populateFilters(){
   const kecSel = document.getElementById('filterKecamatan');
   const desaSel = document.getElementById('filterDesa');
   const kelSel = document.getElementById('filterKelurahan');
+  if(!kecSel || !desaSel || !kelSel) return; 
+
   const selectedKec = kecSel.value;
   const selectedDesa = desaSel.value;
   const selectedKel = kelSel.value;
@@ -634,7 +758,6 @@ function populateFilters(){
   kecSel.innerHTML = '<option value="">Semua Kecamatan</option>';
   Array.from(kecSet).sort().forEach(k => { kecSel.innerHTML += `<option value="${k}" ${k===selectedKec?'selected':''}>${k}</option>`; });
 
-  // Desa options (respect selected kecamatan)
   const desaMap = new Map();
   globalData.forEach(d=>{
     if(selectedKec && ((d.Kecamatan||'') !== selectedKec)) return;
@@ -647,7 +770,6 @@ function populateFilters(){
     desaSel.innerHTML += `<option value="${key}" ${key===selectedDesa?'selected':''}>${label}</option>`;
   });
 
-  // Kelurahan options (respect selected kecamatan & desa)
   const kelMap = new Map();
   globalData.forEach(d=>{
     if(selectedKec && ((d.Kecamatan||'') !== selectedKec)) return;
@@ -664,20 +786,31 @@ function populateFilters(){
     kelSel.innerHTML += `<option value="${key}" ${key===selectedKel?'selected':''}>${label}</option>`;
   });
   
-  // Panggil fungsi kontrol checkbox
   updateTogglePerDesaState();
 }
 
-/* Sorting */
 let sortConfig = { key:null, asc:true };
 function applySavedSort(){ const s = localStorage.getItem(LS_SORT); if(s) try{ sortConfig = JSON.parse(s); }catch(e){} }
 function sortFilteredViewIfNeeded(){ if(!sortConfig.key) return; filteredView.sort((a,b)=>{ const va = (''+(a[sortConfig.key]||'')).toLowerCase(); const vb = (''+(b[sortConfig.key]||'')).toLowerCase(); if(va<vb) return sortConfig.asc? -1:1; if(va>vb) return sortConfig.asc?1:-1; return 0; }); }
-function setHeaderSortUI(){ document.querySelectorAll("#dataTable thead th.sortable").forEach(th=>th.classList.remove('asc','desc')); const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","Kelurahan","LuasRumah","JumlahPenghuni","KecukupanRuang","StatusKepemilikanTanah","AksesSanitasi","Latitude","Longitude"]; const idx = keyMap.indexOf(sortConfig.key); if(idx>=0){ const ths = document.querySelectorAll("#dataTable thead th.sortable"); if(ths[idx]) ths[idx].classList.add(sortConfig.asc?'asc':'desc'); } }
-function sortByKey(key, th){ if(sortConfig.key===key) sortConfig.asc=!sortConfig.asc; else { sortConfig.key=key; sortConfig.asc=true; } sortFilteredViewIfNeeded(); currentPage=1; renderTable(); setHeaderSortUI(); localStorage.setItem(LS_SORT, JSON.stringify(sortConfig)); }
+function setHeaderSortUI(){ 
+  document.querySelectorAll("#dataTable thead th.sortable").forEach(th=>th.classList.remove('asc','desc')); 
+  const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","Kelurahan","LuasRumah","JumlahPenghuni","KecukupanRuang","StatusKepemilikanTanah","AksesSanitasi","Latitude","Longitude"]; 
+  const idx = keyMap.indexOf(sortConfig.key); 
+  if(idx>=0){ 
+    const ths = document.querySelectorAll("#dataTable thead th.sortable"); 
+    if(ths[idx]) ths[idx].classList.add(sortConfig.asc?'asc':'desc'); 
+  } 
+}
+function sortByKey(key, th){ 
+  if(sortConfig.key===key) sortConfig.asc=!sortConfig.asc; 
+  else { sortConfig.key=key; sortConfig.asc=true; } 
+  sortFilteredViewIfNeeded(); currentPage=1; renderTable(); setHeaderSortUI(); 
+  localStorage.setItem(LS_SORT, JSON.stringify(sortConfig)); 
+}
 
-/* Table rendering */
 const tbody = document.querySelector('#dataTable tbody');
 function renderTable(){
+  if(!tbody) return;
   tbody.innerHTML=''; const total = filteredView.length; const totalPages = Math.max(1, Math.ceil(total/pageSize));
   if(currentPage>totalPages) currentPage=totalPages;
   const start=(currentPage-1)*pageSize; const end=start+pageSize; const pageSlice = filteredView.slice(start,end);
@@ -686,7 +819,11 @@ function renderTable(){
     const tr = document.createElement('tr'); tr.dataset.idx = r._idx;
     const isAdmin = userRole === 'admin';
     tr.innerHTML = `
-      <td contenteditable="${isAdmin}">${escapeHtml(r.Nama)}</td>
+      <td contenteditable="${isAdmin}">
+        <a href="#" onclick="zoomToLocation(${r._idx}); return false;" style="font-weight:600; color:var(--main-purple); text-decoration:none;">
+           ${escapeHtml(r.Nama)}
+        </a>
+      </td>
       <td contenteditable="${isAdmin}">${escapeHtml(r.NoKK)}</td>
       <td contenteditable="${isAdmin}">${escapeHtml(r.NoNIK)}</td>
       <td contenteditable="${isAdmin}">${escapeHtml(r.Alamat)}</td>
@@ -704,15 +841,20 @@ function renderTable(){
         <button class="btn btn-sm btn-success small-btn" onclick="saveRow(this)" style="display:${isAdmin?'':'none'}"><i class="fa-solid fa-save"></i></button>
         <button class="btn btn-sm btn-danger small-btn" onclick="deleteRow(this)" style="display:${isAdmin?'':'none'}"><i class="fa-solid fa-trash"></i></button>
       </td>`;
-    tr.addEventListener('click', function(e){ if(e.target.tagName==='BUTTON') return; selectRow(r._idx, tr); });
+    tr.addEventListener('click', function(e){ 
+        // Jangan select row jika yang diklik adalah link/button
+        if(e.target.tagName==='BUTTON' || e.target.closest('a')) return; 
+        selectRow(r._idx, tr); 
+    });
     tbody.appendChild(tr);
   });
 
   renderPagination(total, totalPages);
   document.getElementById('pageInfo').innerText = `Menampilkan ${total===0?0:start+1} - ${Math.min(total,end)} dari ${total} baris`;
 }
+
 function renderPagination(total, totalPages){
-  const pg = document.getElementById('pagination'); pg.innerHTML='';
+  const pg = document.getElementById('pagination'); if(!pg) return; pg.innerHTML='';
   const createBtn=(txt,onClick,disabled=false,cls='btn-secondary')=>{ const b=document.createElement('button'); b.type='button'; b.className=`btn ${cls} page-btn`; if(disabled) b.disabled=true; b.innerText=txt; b.addEventListener('click',onClick); return b; };
   pg.appendChild(createBtn('⟨', ()=>{ if(currentPage>1){ currentPage--; renderTable(); } }, currentPage===1));
   const maxButtons = 5; let start = Math.max(1, currentPage - Math.floor(maxButtons/2)); let end = Math.min(totalPages, start + maxButtons -1);
@@ -727,31 +869,25 @@ function renderPagination(total, totalPages){
   pg.appendChild(createBtn('⟩', ()=>{ if(currentPage<totalPages){ currentPage++; renderTable(); } }, currentPage===totalPages));
 }
 
-/* Row CRUD */
-function selectRow(globalIdx, trEl){ document.querySelectorAll('#dataTable tbody tr').forEach(t=>t.classList.remove('selected')); trEl.classList.add('selected'); selectedGlobalIndex = globalIdx; }
+function selectRow(globalIdx, trEl){ 
+    document.querySelectorAll('#dataTable tbody tr').forEach(t=>t.classList.remove('selected')); 
+    if(trEl) trEl.classList.add('selected'); 
+    selectedGlobalIndex = globalIdx; 
+}
 function addRow(){ if(userRole!=='admin') return; const newObj={Nama:'',NoKK:'',NoNIK:'',Alamat:'',Kecamatan:'',Desa:'',Kelurahan:'',LuasRumah:0,JumlahPenghuni:0,KecukupanRuang:'',StatusKepemilikanTanah:'',AksesSanitasi:'',Latitude:null,Longitude:null}; globalData.push(newObj); populateFilters(); applyFilters(); saveToFirebase(); selectedGlobalIndex = globalData.length-1; }
 function saveRow(btn){ if(userRole!=='admin') return; const tr = btn.closest('tr'); const idx = parseInt(tr.dataset.idx); const cells = tr.querySelectorAll('td');
   globalData[idx] = {
-    Nama: cells[0].innerText.trim(),
-    NoKK: cells[1].innerText.trim(),
-    NoNIK: cells[2].innerText.trim(),
-    Alamat: cells[3].innerText.trim(),
-    Kecamatan: cells[4].innerText.trim(),
-    Desa: cells[5].innerText.trim(),
-    Kelurahan: cells[6].innerText.trim(),
-    LuasRumah: safeFloat(cells[7].innerText) || 0,
-    JumlahPenghuni: parseInt(cells[8].innerText) || 0,
-    KecukupanRuang: cells[9].innerText.trim() || '',
-    StatusKepemilikanTanah: cells[10].innerText.trim() || '',
-    AksesSanitasi: cells[11].innerText.trim() || '',
-    Latitude: safeFloat(cells[12].innerText),
-    Longitude: safeFloat(cells[13].innerText)
+    Nama: cells[0].querySelector('a') ? cells[0].querySelector('a').innerText.trim() : cells[0].innerText.trim(), 
+    NoKK: cells[1].innerText.trim(), NoNIK: cells[2].innerText.trim(), Alamat: cells[3].innerText.trim(),
+    Kecamatan: cells[4].innerText.trim(), Desa: cells[5].innerText.trim(), Kelurahan: cells[6].innerText.trim(),
+    LuasRumah: safeFloat(cells[7].innerText) || 0, JumlahPenghuni: parseInt(cells[8].innerText) || 0,
+    KecukupanRuang: cells[9].innerText.trim() || '', StatusKepemilikanTanah: cells[10].innerText.trim() || '',
+    AksesSanitasi: cells[11].innerText.trim() || '', Latitude: safeFloat(cells[12].innerText), Longitude: safeFloat(cells[13].innerText)
   };
   populateFilters(); applyFilters(); saveToFirebase();
 }
 function deleteRow(btn){ if(userRole!=='admin') return; const tr=btn.closest('tr'); const idx=parseInt(tr.dataset.idx); if(!confirm('Hapus data ini?')) return; globalData.splice(idx,1); populateFilters(); applyFilters(); saveToFirebase(); selectedGlobalIndex=null; }
 
-/* KPI animated count-up: totalDesa now counts unique Kecamatan+Desa+Kelurahan */
 function animateNumber(element, newValue, duration = 900){
   if(!element) return;
   const start = parseInt(String(element.innerText).replace(/\D/g,'')) || 0; const diff = newValue - start; const t0 = performance.now();
@@ -765,7 +901,6 @@ function updateKPI(){
   const kecSet = new Set(data.map(d=> (d.Kecamatan||'').trim().toLowerCase()).filter(Boolean));
   animateNumber(document.getElementById('totalKecamatan'), kecSet.size);
 
-  // Unique combination Kecamatan + Desa + Kelurahan
   const desaKelSet = new Set(data.map(d => {
     const kec = (d.Kecamatan||'').trim().toLowerCase();
     const desa = (d.Desa||'').trim().toLowerCase();
@@ -782,12 +917,11 @@ function updateKPI(){
   animateNumber(document.getElementById('totalTidak'), totalTidak);
 }
 
-/* Filters apply */
 function applyFilters(){
-  const k = document.getElementById('filterKecamatan').value;
-  const d = document.getElementById('filterDesa').value;
-  const kel = document.getElementById('filterKelurahan').value;
-  const s = document.getElementById('searchInput').value.trim().toLowerCase();
+  const k = document.getElementById('filterKecamatan')?.value;
+  const d = document.getElementById('filterDesa')?.value;
+  const kel = document.getElementById('filterKelurahan')?.value;
+  const s = document.getElementById('searchInput')?.value.trim().toLowerCase();
 
   filteredView = [];
   globalData.forEach((row, idx)=>{
@@ -798,55 +932,103 @@ function applyFilters(){
     filteredView.push(Object.assign({}, row, {_idx: idx}));
   });
   
-  // Panggil fungsi kontrol checkbox setiap kali filter berubah
   updateTogglePerDesaState(); 
 
   applySavedSort(); sortFilteredViewIfNeeded(); setHeaderSortUI();
   currentPage = 1; renderTable(); updateCharts(); updateMap(); updateKPI();
 }
 
-/* File import/export (Kelurahan included) */
-document.getElementById('fileInput').addEventListener('change', handleFile, false);
+document.getElementById('fileInput')?.addEventListener('change', handleFile, false);
 function handleFile(ev){ if(userRole!=='admin') return; const f = ev.target.files[0]; if(!f) return; const reader = new FileReader(); reader.onload = function(e){ const data = new Uint8Array(e.target.result); const wb = XLSX.read(data,{type:'array'}); const ws = wb.Sheets[wb.SheetNames[0]]; const arr = XLSX.utils.sheet_to_json(ws,{defval:''});
   globalData = arr.map(r=>({
-    Nama: r.Nama||r.nama||'',
-    NoKK: r.NoKK||r.No_KK||'',
-    NoNIK: r.NoNIK||r.No_NIK||'',
-    Alamat: r.Alamat||r.alamat||'',
-    Kecamatan: r.Kecamatan||r.kecamatan||'',
-    Desa: r.Desa||r.desa||'',
-    Kelurahan: r.Kelurahan||r.kelurahan||'',
-    LuasRumah: safeFloat(r.LuasRumah||r.luas)||0,
-    JumlahPenghuni: parseInt(r.JumlahPenghuni||r.jumlah)||0,
-    KecukupanRuang: (r.KecukupanRuang||'').toString(),
-    StatusKepemilikanTanah: (r.StatusKepemilikanTanah||r.statusKepemilikanTanah||'').toString(),
+    Nama: r.Nama||r.nama||'', NoKK: r.NoKK||r.No_KK||'', NoNIK: r.NoNIK||r.No_NIK||'', Alamat: r.Alamat||r.alamat||'',
+    Kecamatan: r.Kecamatan||r.kecamatan||'', Desa: r.Desa||r.desa||'', Kelurahan: r.Kelurahan||r.kelurahan||'',
+    LuasRumah: safeFloat(r.LuasRumah||r.luas)||0, JumlahPenghuni: parseInt(r.JumlahPenghuni||r.jumlah)||0,
+    KecukupanRuang: (r.KecukupanRuang||'').toString(), StatusKepemilikanTanah: (r.StatusKepemilikanTanah||r.statusKepemilikanTanah||'').toString(),
     AksesSanitasi: (r.AksesSanitasi||r.aksesSanitasi||'').toString(),
-    Latitude: safeFloat(r.Latitude||r.lat),
-    Longitude: safeFloat(r.Longitude||r.lng)
+    Latitude: safeFloat(r.Latitude||r.lat), Longitude: safeFloat(r.Longitude||r.lng)
   }));
   populateFilters(); applyFilters(); saveToFirebase(); }; reader.readAsArrayBuffer(f); }
 
-function exportExcel(){ const out = globalData.map(r=> ({ Nama:r.Nama||'', NoKK:r.NoKK||'', NoNIK:r.NoNIK||'', Alamat:r.Alamat||'', Kecamatan:r.Kecamatan||'', Desa:r.Desa||'', Kelurahan:r.Kelurahan||'', LuasRumah:r.LuasRumah||0, JumlahPenghuni:r.JumlahPenghuni||0, KecukupanRuang:r.KecukupanRuang||'', StatusKepemilikanTanah:r.StatusKepemilikanTanah||'', AksesSanitasi:r.AksesSanitasi||'', Latitude:r.Latitude||'', Longitude:r.Longitude||'' })); const ws = XLSX.utils.json_to_sheet(out); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Rutilahu'); XLSX.writeFile(wb, 'Rutilahu_Ciamis_export.xlsx'); }
-document.getElementById('downloadTemplate').addEventListener('click', ()=>{ const headers = [{Nama:'Contoh',NoKK:'3201...',NoNIK:'3510...',Alamat:'Jl. Contoh',Kecamatan:'Contoh Kec',Desa:'Contoh Desa',Kelurahan:'Contoh Kel',LuasRumah:36,JumlahPenghuni:4,KecukupanRuang:'Cukup',StatusKepemilikanTanah:'Milik Sendiri',AksesSanitasi:'Baik',Latitude:-7.333,Longitude:108.333}]; const ws = XLSX.utils.json_to_sheet(headers,{header:['Nama','NoKK','NoNIK','Alamat','Kecamatan','Desa','Kelurahan','LuasRumah','JumlahPenghuni','KecukupanRuang','StatusKepemilikanTanah','AksesSanitasi','Latitude','Longitude']}); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Template'); XLSX.writeFile(wb, 'Template_Rutilahu.xlsx'); });
+function exportExcel(){ 
+  const out = filteredView.map(r=> ({ 
+    Nama:r.Nama||'', NoKK:r.NoKK||'', NoNIK:r.NoNIK||'', Alamat:r.Alamat||'', 
+    Kecamatan:r.Kecamatan||'', Desa:r.Desa||'', Kelurahan:r.Kelurahan||'', 
+    LuasRumah:r.LuasRumah||0, JumlahPenghuni:r.JumlahPenghuni||0, 
+    KecukupanRuang:r.KecukupanRuang||'', StatusKepemilikanTanah:r.StatusKepemilikanTanah||'', 
+    AksesSanitasi:r.AksesSanitasi||'', Latitude:r.Latitude||'', Longitude:r.Longitude||'' 
+  })); 
+  const ws = XLSX.utils.json_to_sheet(out); 
+  
+  if(out.length > 0) {
+      const lastColIndex = Object.keys(out[0]).length - 1; 
+      ws['!autofilter'] = { ref: `A1:${XLSX.utils.encode_col(lastColIndex)}1` };
+  }
+  
+  const wb = XLSX.utils.book_new(); 
+  XLSX.utils.book_append_sheet(wb, ws, 'Rutilahu'); 
+  XLSX.writeFile(wb, 'Rutilahu_Ciamis_export.xlsx'); 
+}
 
-document.getElementById('clearData').addEventListener('click', ()=>{ if(userRole!=='admin') return; if(!confirm('Kosongkan semua data?')) return; globalData=[]; applyFilters(); populateFilters(); saveToFirebase(); });
+document.getElementById('downloadTemplate')?.addEventListener('click', ()=>{ const headers = [{Nama:'CONTOH',NoKK:'3201...',NoNIK:'3510...',Alamat:'JL. CONTOH',Kecamatan:'CONTOH KEC',Desa:'CONTOH DESA',Kelurahan:'CONTOH KEL',LuasRumah:36,JumlahPenghuni:4,KecukupanRuang:'CUKUP',StatusKepemilikanTanah:'HAK MILIK',AksesSanitasi:'ADA',Latitude:-7.333,Longitude:108.333}]; const ws = XLSX.utils.json_to_sheet(headers,{header:['Nama','NoKK','NoNIK','Alamat','Kecamatan','Desa','Kelurahan','LuasRumah','JumlahPenghuni','KecukupanRuang','StatusKepemilikanTanah','AksesSanitasi','Latitude','Longitude']}); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Template'); XLSX.writeFile(wb, 'Template_Rutilahu.xlsx'); });
 
-/* Firebase sync */
-function saveToFirebase(){ if(userRole==='admin'){ db.ref('rutilahu_data').set(globalData).catch(e=>console.error('Firebase save failed',e)); } }
-function loadFromFirebase(){ db.ref('rutilahu_data').on('value', snapshot=>{ const data = snapshot.val(); if(Array.isArray(data)) globalData = data.map(r=>({ Nama:r.Nama||'', NoKK:r.NoKK||'', NoNIK:r.NoNIK||'', Alamat:r.Alamat||'', Kecamatan:r.Kecamatan||'', Desa:r.Desa||'', Kelurahan:r.Kelurahan||'', LuasRumah: safeFloat(r.LuasRumah)||0, JumlahPenghuni: parseInt(r.JumlahPenghuni)||0, KecukupanRuang: r.KecukupanRuang||'', StatusKepemilikanTanah: r.StatusKepemilikanTanah||'', AksesSanitasi: r.AksesSanitasi||'', Latitude: safeFloat(r.Latitude), Longitude: safeFloat(r.Longitude) })); else globalData=[]; populateFilters(); applyFilters(); }, err=> console.error('Firebase load error',err)); }
+document.getElementById('clearData')?.addEventListener('click', ()=>{ if(userRole!=='admin') return; if(!confirm('Kosongkan semua data?')) return; globalData=[]; applyFilters(); populateFilters(); saveToFirebase(); });
 
-/* Auth & UI */
+function saveToFirebase(){ 
+    if(userRole!=='admin') return; 
+    showSyncStatus('Menyimpan data...');
+    db.ref('rutilahu_data').set(globalData)
+    .then(() => { showSyncStatus('Data tersimpan! ✅'); setTimeout(hideSyncStatus, 1500); })
+    .catch(e => { console.error('Firebase save failed',e); showSyncStatus('Penyimpanan GAGAL ❌'); setTimeout(hideSyncStatus, 2500); });
+}
+
+function loadFromFirebase(){ 
+    showSyncStatus('Memuat data...');
+    db.ref('rutilahu_data').on('value', snapshot=>{ 
+        const data = snapshot.val(); 
+        if(Array.isArray(data)) 
+            globalData = data.map(r=>({ 
+                Nama:r.Nama||'', NoKK:r.NoKK||'', NoNIK:r.NoNIK||'', Alamat:r.Alamat||'', 
+                Kecamatan:r.Kecamatan||'', Desa:r.Desa||'', Kelurahan:r.Kelurahan||'', 
+                LuasRumah: safeFloat(r.LuasRumah)||0, JumlahPenghuni: parseInt(r.JumlahPenghuni)||0, 
+                KecukupanRuang: r.KecukupanRuang||'', StatusKepemilikanTanah: r.StatusKepemilikanTanah||'', 
+                AksesSanitasi: r.AksesSanitasi||'', Latitude: safeFloat(r.Latitude), Longitude: safeFloat(r.Longitude) 
+            })); 
+        else globalData=[]; 
+
+        populateFilters(); 
+        applyFilters(); 
+        
+        showSyncStatus('Data termuat! ✅');
+        setTimeout(hideSyncStatus, 1500);
+
+    }, err=> { console.error('Firebase load error',err); showSyncStatus('Gagal memuat data! ❌'); setTimeout(hideSyncStatus, 2500); }); 
+}
+
 const adminEmail = 'admin@ciamis.go.id';
 auth.onAuthStateChanged(user=>{ if(user){ if(user.isAnonymous) userRole='viewer'; else if(user.email===adminEmail) userRole='admin'; else userRole='viewer'; applyUserRole(); loadFromFirebase(); } else { userRole=null; applyUserRole(); showLoginOverlay(); } });
 function showLoginOverlay(){ document.getElementById('login-overlay').style.display='flex'; document.body.style.overflow='hidden'; }
 function hideLoginOverlay(){ document.getElementById('login-overlay').style.display='none'; document.body.style.overflow=''; }
-function applyUserRole(){ const isAdmin = userRole==='admin'; document.getElementById('fileInput').disabled = !isAdmin; document.getElementById('downloadTemplate').disabled = !isAdmin; document.querySelectorAll('#dataTable tbody td[contenteditable]').forEach(el=>el.setAttribute('contenteditable', isAdmin)); document.querySelectorAll('.btn-danger, .btn-success').forEach(el=>el.style.display = isAdmin? '':'none'); document.getElementById('logoutBtn').style.display = userRole? '':'none'; if(userRole) hideLoginOverlay(); updateUserRoleIndicator(); }
-document.getElementById('loginAdminBtn').addEventListener('click', ()=>{ const pw = document.getElementById('adminPassword').value; const err = document.getElementById('loginErrorMsg'); auth.signInWithEmailAndPassword(adminEmail, pw).then(()=>err.style.display='none').catch(e=>{ err.style.display='block'; err.innerText = 'Login gagal: ' + e.message; }); });
-document.getElementById('loginViewerBtn').addEventListener('click', ()=>{ auth.signInAnonymously().catch(e=>alert('Viewer login gagal: '+e.message)); });
-document.getElementById('logoutBtn').addEventListener('click', ()=>{ auth.signOut().catch(e=>console.error('Logout error',e)); });
-function updateUserRoleIndicator(){ const el = document.getElementById('userRole'); el.classList.remove('text-success','text-muted'); if(userRole==='admin'){ el.textContent='Admin'; el.classList.add('text-success'); } else if(userRole==='viewer'){ el.textContent='Viewer'; el.classList.add('text-muted'); } else el.textContent='-'; }
+function applyUserRole(){ 
+    const isAdmin = userRole==='admin'; 
+    const fileInput = document.getElementById('fileInput');
+    const downloadTemplate = document.getElementById('downloadTemplate');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-/* Map click to save coords (Admin) */
+    if(fileInput) fileInput.disabled = !isAdmin; 
+    if(downloadTemplate) downloadTemplate.disabled = !isAdmin; 
+    
+    document.querySelectorAll('#dataTable tbody td[contenteditable]').forEach(el=>el.setAttribute('contenteditable', isAdmin)); 
+    document.querySelectorAll('.btn-danger, .btn-success').forEach(el=>el.style.display = isAdmin? '':'none'); 
+    if(logoutBtn) logoutBtn.style.display = userRole? '':'none'; 
+    if(userRole) hideLoginOverlay(); 
+    updateUserRoleIndicator(); 
+}
+document.getElementById('loginAdminBtn')?.addEventListener('click', ()=>{ const pw = document.getElementById('adminPassword').value; const err = document.getElementById('loginErrorMsg'); auth.signInWithEmailAndPassword(adminEmail, pw).then(()=>err.style.display='none').catch(e=>{ err.style.display='block'; err.innerText = 'Login gagal: ' + e.message; }); });
+document.getElementById('loginViewerBtn')?.addEventListener('click', ()=>{ auth.signInAnonymously().catch(e=>alert('Viewer login gagal: '+e.message)); });
+document.getElementById('logoutBtn')?.addEventListener('click', ()=>{ auth.signOut().catch(e=>console.error('Logout error',e)); });
+function updateUserRoleIndicator(){ const el = document.getElementById('userRole'); if(!el) return; el.classList.remove('text-success','text-muted'); if(userRole==='admin'){ el.textContent='Admin'; el.classList.add('text-success'); } else if(userRole==='viewer'){ el.textContent='Viewer'; el.classList.add('text-muted'); } else el.textContent='-'; }
+
 map.on('click', function(e){
   if(userRole !== 'admin'){ alert('Anda tidak memiliki izin untuk mengedit.'); return; }
   const lat = parseFloat(e.latlng.lat.toFixed(6)); const lng = parseFloat(e.latlng.lng.toFixed(6));
@@ -857,27 +1039,131 @@ map.on('click', function(e){
   setTimeout(()=> map.removeLayer(m), 1200);
 });
 
-/* Init bindings */
-// PENTING: Panggil populateFilters/applyFilters saat filter Kecamatan berubah
-document.getElementById('filterKecamatan').addEventListener('change', ()=>{ populateFilters(); applyFilters(); });
-document.getElementById('filterDesa').addEventListener('change', ()=>{ populateFilters(); applyFilters(); });
-document.getElementById('filterKelurahan').addEventListener('change', applyFilters);
-document.getElementById('searchInput').addEventListener('input', applyFilters);
-document.getElementById('pageSizeSel').value = pageSize;
-document.getElementById('pageSizeSel').addEventListener('change', (e)=>{ pageSize = parseInt(e.target.value,10); localStorage.setItem('rutilahu_page_size', String(pageSize)); currentPage=1; renderTable(); });
+function resetFilters(){
+  const searchInput = document.getElementById('searchInput');
+  const filterKecamatan = document.getElementById('filterKecamatan');
+  const filterDesa = document.getElementById('filterDesa');
+  const filterKelurahan = document.getElementById('filterKelurahan');
+
+  if(searchInput) searchInput.value = '';
+  if(filterKecamatan) filterKecamatan.value = '';
+  if(filterDesa) filterDesa.value = '';
+  if(filterKelurahan) filterKelurahan.value = '';
+  
+  populateFilters(); 
+  applyFilters();
+}
+document.getElementById('resetFiltersBtn')?.addEventListener('click', resetFilters);
+
+document.getElementById('filterKecamatan')?.addEventListener('change', ()=>{ populateFilters(); applyFilters(); });
+document.getElementById('filterDesa')?.addEventListener('change', ()=>{ populateFilters(); applyFilters(); });
+document.getElementById('filterKelurahan')?.addEventListener('change', applyFilters);
+document.getElementById('searchInput')?.addEventListener('input', applyFilters);
+const pageSizeSel = document.getElementById('pageSizeSel');
+if(pageSizeSel) {
+    pageSizeSel.value = pageSize;
+    pageSizeSel.addEventListener('change', (e)=>{ pageSize = parseInt(e.target.value,10); localStorage.setItem('rutilahu_page_size', String(pageSize)); currentPage=1; renderTable(); });
+}
 document.getElementById('togglePerDesa')?.addEventListener('change', updateCharts);
 
-/* Sortable headers */
 document.addEventListener('DOMContentLoaded', ()=>{
   const keyMap = ["Nama","NoKK","NoNIK","Alamat","Kecamatan","Desa","Kelurahan","LuasRumah","JumlahPenghuni","KecukupanRuang","StatusKepemilikanTanah","AksesSanitasi","Latitude","Longitude"];
   document.querySelectorAll("#dataTable thead th.sortable").forEach((th, idx)=>{
     if(idx < keyMap.length){ th.style.cursor='pointer'; th.title='Klik untuk urutkan'; th.addEventListener('click', ()=> sortByKey(keyMap[idx], th)); }
   });
   applySavedSort(); updateUserRoleIndicator();
+  // Call the submenu logic on load
+  setupSubmenuNavigation();
 });
 
-/* Manual refresh util */
-function refreshAll(){ populateFilters(); applyFilters(); updateCharts(); updateMap(); updateKPI(); }
+/* ============================================== */
+/* LOGIKA SUBMENU BARU (DIMODIFIKASI UNTUK ZOOM DAN GANTI TAB) */
+/* ============================================== */
+
+function showContentGroup(id) {
+    document.querySelectorAll('.content-group').forEach(group => {
+        group.style.display = 'none';
+    });
+    
+    const targetGroup = document.getElementById(id + '-content');
+    if (targetGroup) {
+        targetGroup.style.display = 'block';
+        
+        if (id === 'peta-sebaran') {
+            // Leaflet map fix: ensure it redraws when container becomes visible
+            setTimeout(() => { 
+                map.invalidateSize(true); 
+
+                // >> LOGIKA BARU: Jika ada lokasi yang diklik terakhir
+                if (lastClickedLocation) {
+                    const { latlng, data: r } = lastClickedLocation;
+                    const zoomLevel = 18; // Zoom lebih dekat
+
+                    // 1. Set pusat peta dan level zoom DENGAN ANIMASI MULUS
+                    map.setView(latlng, zoomLevel, { animate: true, duration: 0.8 }); 
+                    
+                    // 2. Buka pop-up dengan konten data tersebut
+                    const popupContent = buildPopupHTML(r);
+                    const popup = L.popup({
+                        className: 'custom-popup-temporary',
+                        maxWidth: 280,
+                        closeButton: true,
+                        autoClose: false 
+                    })
+                    .setLatLng(latlng)
+                    .setContent(popupContent)
+                    .openOn(map);
+
+                    // 3. Tutup pop-up setelah 5 detik
+                    setTimeout(() => {
+                        if (map.hasLayer(popup)) {
+                            map.closePopup(popup);
+                        }
+                        lastClickedLocation = null; // Reset setelah tampil
+                    }, 5000);
+
+                } else {
+                    // Jika tidak ada lokasi yang diklik, gunakan zoom default (filter/Ciamis)
+                    zoomToFilteredArea();
+                }
+            }, 10); 
+        }
+        if (id === 'analisis-grafik' || id === 'dashboard') {
+            setTimeout(() => { updateCharts(); }, 10); 
+        }
+    }
+}
+
+function setupSubmenuNavigation() {
+    const links = document.querySelectorAll('.sidebar-link');
+    
+    // Set default content to show
+    showContentGroup('dashboard'); 
+
+    links.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const contentId = this.getAttribute('data-content');
+            
+            // Update active state
+            links.forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Show content
+            showContentGroup(contentId);
+        });
+    });
+    
+    // Initial display based on the active link (Dashboard Utama)
+    const initialActiveLink = document.querySelector('.sidebar-link.active');
+    if (initialActiveLink) {
+        const initialContentId = initialActiveLink.getAttribute('data-content');
+        showContentGroup(initialContentId);
+    }
+}
+/* ============================================== */
+/* END LOGIKA SUBMENU BARU */
+/* ============================================== */
 
 /* End */
 </script>
