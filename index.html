@@ -618,7 +618,7 @@
 
       const ctxK = document.getElementById('barKecamatan')?.getContext('2d');
       if(ctxK) chartKec = new Chart(ctxK, {
-        type:'bar', data:{ labels, datasets:[{ label: perDesa ? 'Jumlah per Desa/Kelurahan':'Jumlah per Kecamatan', data: values, backgroundColor: barColors }] },
+        type:'bar', data:{ labels, datasets:[{ label: perDesa ? 'Jumlah Rutilahu':'Jumlah Rutilahu', data: values, backgroundColor: barColors }] },
         options:{
           indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, animation:{ duration:700 },
           elements:{ bar:{ borderRadius:8, borderSkipped:false } },
